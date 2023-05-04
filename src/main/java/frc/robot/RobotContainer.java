@@ -4,11 +4,17 @@
 
 package frc.robot;
 
-import frc.robot.Config.JoystickConfig;
-import frc.robot.auto.Autos;
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.server.PathPlannerServer;
+
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.lib.lib8727.PPLTVDiffControllerCommand;
+import frc.robot.Config.JOYSTICK;
+import frc.robot.auto.AutoRoutines;
+import frc.robot.commands.ArcadeDrive;
+import frc.robot.subsystems.Drive;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -18,10 +24,13 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+    Drive drive = new Drive();
+
+    AutoRoutines autoRoutines = new AutoRoutines(drive);
 
     // Joysticks
-    private final CommandXboxController driver = new CommandXboxController(JoystickConfig.DRIVER_JOYSTICK_PORT);
-    private final CommandXboxController operator = new CommandXboxController(JoystickConfig.OPERATOR_JOYSTICK_PORT);
+    private final CommandXboxController driver = new CommandXboxController(JOYSTICK.DRIVER_JOYSTICK_PORT);
+    private final CommandXboxController operator = new CommandXboxController(JOYSTICK.OPERATOR_JOYSTICK_PORT);
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -35,6 +44,7 @@ public class RobotContainer {
      * Use this method to define your trigger->command mappings.
      */
     private void configureBindings() {
+        drive.setDefaultCommand(new ArcadeDrive(driver, 1, 2, drive));// XboxController.Axis.kLeftY.value, XboxController.Axis.kRightX.value, drive));
     }
 
     /**
@@ -44,6 +54,11 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // An example command will be run in autonomous
-        return Autos.doNothing();
+        // return autoRoutines.doNothing();
+
+        // return autoRoutines.drivePath("driveForward");
+        // return autoRoutines.drivePath("curve");
+        // return autoRoutines.drivePath("sCurve");
+        return autoRoutines.drivePath("fancy");
     }
 }
