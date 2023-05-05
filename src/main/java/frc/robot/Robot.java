@@ -6,6 +6,7 @@ package frc.robot;
 
 import com.pathplanner.lib.server.PathPlannerServer;
 
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -30,6 +31,8 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
         PathPlannerServer.startServer(5811);
+        DataLogManager.start();
+        DataLogManager.logNetworkTables(true);
         
         // Instantiate our RobotContainer. This will perform all our button bindings,
         // and put our
