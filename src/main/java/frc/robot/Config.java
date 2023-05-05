@@ -4,18 +4,18 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.PIDConstants;
+
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.DifferentialDriveFeedforward;
 import edu.wpi.first.math.controller.LTVDifferentialDriveController;
+import edu.wpi.first.math.controller.RamseteController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
-import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim.KitbotGearing;
-import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim.KitbotMotor;
-import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim.KitbotWheelSize;
 
 /**
  * The Config class provides a convenient place for robot-wide numerical or
@@ -59,7 +59,7 @@ public final class Config {
         public static final double kV_ANGULAR = 0.37;
         public static final double KA_ANGULAR = 0.12;
 
-        public static final DifferentialDriveFeedforward FEEDFORWARD = new DifferentialDriveFeedforward (
+        public static final DifferentialDriveFeedforward DIFF_FEEDFORWARD = new DifferentialDriveFeedforward (
             kV_LINEAR, 
             kA_LINEAR, 
             kV_ANGULAR, 
@@ -67,7 +67,7 @@ public final class Config {
             TRACKWIDTH
         );
         
-        public static final LTVDifferentialDriveController CONTROLLER = new LTVDifferentialDriveController(
+        public static final LTVDifferentialDriveController LTV_CONTROLLER = new LTVDifferentialDriveController(
             LinearSystemId.identifyDrivetrainSystem(kV_LINEAR, kA_LINEAR, kV_ANGULAR, KA_ANGULAR, TRACKWIDTH),
             TRACKWIDTH,
             VecBuilder.fill(// Used for vision rotating align from another team: VecBuilder.fill(0.001, 0.001, 0.001, 0.5, 1)
@@ -78,6 +78,16 @@ public final class Config {
                 0.95),  // Right velocity meters per second
             VecBuilder.fill(12.0, 12.0), // Volts
             GENERAL.RIO_CYCLE_TIME);
+
+        public static final RamseteController RAMSETE_CONTROLLER = new RamseteController();
+
+        public static final double kS = 0.3;
+        public static final double kV = 2.7;
+        public static final double kA = 1.3;
+
+        public static final SimpleMotorFeedforward WHEEL_FEEDFORWARD = new SimpleMotorFeedforward(kS, kV, kA);
+
+        public static final PIDConstants WHEEL_PID = new PIDConstants(0.1, 0, 0);
     }
 
     public static class DIFF_SIMULATION {
@@ -102,7 +112,8 @@ public final class Config {
 
     public static class AUTO {
         public static final boolean DISABLE_FEEDBACK = false;
-        public static final double VEL = 3;
-        public static final double ACCEL = 5;
+        public static final boolean USE_RAMSETE_NOT_LTV = true;
+        public static final double VEL = 2;
+        public static final double ACCEL = 4;
     }
 }

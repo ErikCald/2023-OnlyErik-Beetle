@@ -9,12 +9,18 @@ import com.ctre.phoenix.motorcontrol.TalonSRXSimCollection;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.sensors.BasePigeonSimCollection;
 import com.ctre.phoenix.sensors.PigeonIMU;
+import com.pathplanner.lib.PathPlannerTrajectory;
 
 import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -36,6 +42,8 @@ public class Drive extends SubsystemBase {
     
     TalonSRXSimCollection m_simLeftMotor, m_simRightMotor;
     BasePigeonSimCollection m_simPigeon;
+
+    DoublePublisher pubLeftVel, pubRightVel;
 
     /** Creates a new DifferentialDriveSubsystem. */
     public Drive() {
@@ -71,6 +79,15 @@ public class Drive extends SubsystemBase {
             new Pose2d()); 
 
         SmartDashboard.putData("Field", m_field);
+
+        createNT();
+    }
+
+    private void createNT() {
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("Drive");
+        pubLeftVel = table.getDoubleTopic("MeasuredLeftVelocity").publish(PubSubOption.periodic(0.02));
+        pubRightVel = table.getDoubleTopic("MeasuredRightVelocity").publish(PubSubOption.periodic(0.02));
+        
     }
 
     @Override
@@ -139,20 +156,34 @@ public class Drive extends SubsystemBase {
     }
 
     public DifferentialDriveWheelSpeeds getWheelSpeeds() {
+        double leftSpeed = getLeftVelocity();
+        double rightSpeed = getRightVelocity();
+
+        pubLeftVel.accept(leftSpeed);
+        pubRightVel.accept(rightSpeed);
+
         return new DifferentialDriveWheelSpeeds(
-            getLeftVelocity(),
-            getRightVelocity()
+            leftSpeed,
+            rightSpeed
         );
     }
 
+    public void setWheelVoltages(double leftVoltage, double rightVoltage) {
+        m_leftMotor.setVoltage(leftVoltage);
+        m_rightMotor.setVoltage(rightVoltage);
+    }
+
     public void setWheelVoltages(DifferentialDriveWheelVoltages voltages) {
-        m_leftMotor.setVoltage(voltages.left);
-        m_rightMotor.setVoltage(voltages.right);
+        setWheelVoltages(voltages.left, voltages.right);
     }
 
     public void stopMotors() {
         m_leftMotor.stopMotor();
         m_rightMotor.stopMotor();
+    }
+
+    public void setField2dTrajectory(PathPlannerTrajectory traj) {
+        m_field.getObject("traj").setTrajectory((Trajectory) traj);
     }
 
 

@@ -23,7 +23,16 @@
   },
   "NetworkTables": {
     "transitory": {
+      "Drive": {
+        "open": true
+      },
+      "Shuffleboard": {
+        "open": true
+      },
       "SmartDashboard": {
+        "Field": {
+          "open": true
+        },
         "PPLTVDiffControllerCommand": {
           "open": true
         },
@@ -62,7 +71,10 @@
             }
           ]
         }
-      ]
+      ],
+      "window": {
+        "visible": false
+      }
     },
     "Plot <1>": {
       "plots": [
@@ -94,7 +106,10 @@
             }
           ]
         }
-      ]
+      ],
+      "window": {
+        "visible": false
+      }
     },
     "Plot <2>": {
       "plots": [
@@ -104,7 +119,7 @@
               "autoFit": true
             }
           ],
-          "height": 535,
+          "height": 879,
           "series": [
             {
               "color": [
@@ -123,6 +138,54 @@
                 1.0
               ],
               "id": "NT:/SmartDashboard/PPLTVDiffControllerCommand/measuredAngular"
+            }
+          ]
+        }
+      ],
+      "window": {
+        "visible": false
+      }
+    },
+    "Plot <3>": {
+      "plots": [
+        {
+          "height": 902,
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/Drive/MeasuredLeftVelocity"
+            },
+            {
+              "color": [
+                0.8666667342185974,
+                0.5176470875740051,
+                0.32156863808631897,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/PPRamseteCommandtargetLeftSpeed"
+            },
+            {
+              "color": [
+                0.3333333432674408,
+                0.658823549747467,
+                0.4078431725502014,
+                1.0
+              ],
+              "id": "NT:/Drive/MeasuredRightVelocity"
+            },
+            {
+              "color": [
+                0.7686275243759155,
+                0.30588236451148987,
+                0.32156863808631897,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/PPRamseteCommandtargetRightSpeed"
             }
           ]
         }
