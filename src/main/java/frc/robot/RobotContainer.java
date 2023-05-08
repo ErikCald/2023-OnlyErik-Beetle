@@ -14,7 +14,7 @@ import frc.lib.lib8727.PPLTVDiffControllerCommand;
 import frc.robot.Config.JOYSTICK;
 import frc.robot.auto.AutoRoutines;
 import frc.robot.commands.ArcadeDrive;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.DriveSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -24,7 +24,7 @@ import frc.robot.subsystems.Drive;
  * commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-    Drive drive = new Drive();
+    DriveSubsystem drive = new DriveSubsystem();
 
     AutoRoutines autoRoutines = new AutoRoutines(drive);
 

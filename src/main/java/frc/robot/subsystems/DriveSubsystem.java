@@ -31,7 +31,7 @@ import frc.robot.Config.CANID;
 import frc.robot.Config.DIFF;
 import frc.robot.Config.DIFF_SIMULATION;
 
-public class Drive extends SubsystemBase {
+public class DriveSubsystem extends SubsystemBase {
     WPI_TalonSRX m_leftMotor, m_rightMotor;
     PigeonIMU m_pigeon;
 
@@ -45,8 +45,8 @@ public class Drive extends SubsystemBase {
 
     DoublePublisher pubLeftVel, pubRightVel;
 
-    /** Creates a new DifferentialDriveSubsystem. */
-    public Drive() {
+    /** Creates a new DifferentialDrive. */
+    public DriveSubsystem() {
         m_leftMotor = new WPI_TalonSRX(CANID.DIFF_LEFT);
         m_rightMotor = new WPI_TalonSRX(CANID.DIFF_RIGHT);
 
@@ -155,6 +155,12 @@ public class Drive extends SubsystemBase {
             pose);
     }
 
+    /**
+     * Get the measured velocity of the left and right 
+     * wheels in meters per second.
+     * 
+     * @return The speeds of the wheels in m/s.
+     */
     public DifferentialDriveWheelSpeeds getWheelSpeeds() {
         double leftSpeed = getLeftVelocity();
         double rightSpeed = getRightVelocity();

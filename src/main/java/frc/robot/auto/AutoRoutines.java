@@ -15,15 +15,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.Config.AUTO;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.DriveSubsystem;
 
 public final class AutoRoutines {
-    private Drive drive;
+    private DriveSubsystem drive;
 
     private BaseAutoBuilder m_autoBuilder;
     private HashMap<String, Command> m_eventMap;
 
-    public AutoRoutines(Drive drive) {
+    public AutoRoutines(DriveSubsystem drive) {
         this.drive = drive;
 
         m_autoBuilder = CreateAutoBuilder.createBuilder(drive, m_eventMap);

@@ -10,10 +10,10 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Config.JOYSTICK;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.DriveSubsystem;
 
 public class ArcadeDrive extends CommandBase {
-    Drive m_drive;
+    DriveSubsystem m_drive;
     Supplier<Double> m_forward;
     Supplier<Double> m_steering;
 
@@ -26,7 +26,7 @@ public class ArcadeDrive extends CommandBase {
      * @param joystickSteering Supplier to get the desired steering movement, range [-1, 1]
      * @param subsystem The DriveSubsystem
      */
-    public ArcadeDrive(Supplier<Double> joystickForward, Supplier<Double> joystickSteering, Drive drive) {
+    public ArcadeDrive(Supplier<Double> joystickForward, Supplier<Double> joystickSteering, DriveSubsystem drive) {
         m_forward = joystickForward;
         m_steering = joystickSteering;
         m_drive = drive;
@@ -45,7 +45,7 @@ public class ArcadeDrive extends CommandBase {
      * @param steeringAxis id of the axis for steering
      * @param subsystem The DriveSubsystem
      */
-    public ArcadeDrive(CommandXboxController driverStick, int forwardAxis, int steeringAxis, Drive drive) {
+    public ArcadeDrive(CommandXboxController driverStick, int forwardAxis, int steeringAxis, DriveSubsystem drive) {
         this(
             () -> -1 * MathUtil.applyDeadband(driverStick.getRawAxis(forwardAxis), JOYSTICK.DRIVER_JOYSTICK_DEADBAND),
             () -> -1 * MathUtil.applyDeadband(driverStick.getRawAxis(steeringAxis), JOYSTICK.DRIVER_JOYSTICK_DEADBAND),

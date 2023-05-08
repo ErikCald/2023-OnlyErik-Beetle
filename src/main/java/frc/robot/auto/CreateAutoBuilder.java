@@ -17,11 +17,18 @@ import frc.lib.lib2706.LTVDiffAutoBuilder;
 import frc.lib.lib8727.PPLTVDiffControllerCommand;
 import frc.robot.Config.AUTO;
 import frc.robot.Config.DIFF;
-import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.DriveSubsystem;
 
 public class CreateAutoBuilder {
 
-    public static BaseAutoBuilder createBuilder(Drive drive, Map<String, Command> eventMap) {
+    /**
+     * Creates a PathPlanner auto builder and returns the instance.
+     * 
+     * @param drive The drive subsystem
+     * @param eventMap A PathPlanner event map.
+     * @return An auto builder.
+     */
+    public static BaseAutoBuilder createBuilder(DriveSubsystem drive, Map<String, Command> eventMap) {
         setPPCommandLogging(drive);
         if (AUTO.USE_RAMSETE_NOT_LTV) {
             return new RamseteAutoBuilder(
@@ -53,7 +60,7 @@ public class CreateAutoBuilder {
         }
     }
 
-    private static void setPPCommandLogging(Drive drive) {
+    private static void setPPCommandLogging(DriveSubsystem drive) {
         if (AUTO.USE_RAMSETE_NOT_LTV) {
             PPRamseteCommand.setLoggingCallbacks(
                 drive::setField2dTrajectory, 
