@@ -40,27 +40,37 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleArrayLogEntry;
+import edu.wpi.first.util.datalog.IntegerArrayLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.lib.lib686.AdvantageUtil;
+import frc.robot.Config.GENERAL;
+import frc.robot.Config.VISION.APRILTAG;
 
 public class PhotonCameraWrapper {
     private Field2d m_field2d;
     private String estimatedPoseNTName;
     private DoubleArrayLogEntry m_tagPosesLog;
+    private IntegerArrayLogEntry m_tagIDsLog;
     private Transform3d m_robotToCamera;
     private BiConsumer<Pose2d, Double> m_addVisionMeasurement;
     private PhotonCamera photonCamera;
     private PhotonPoseEstimator photonPoseEstimator;
 
-    public PhotonCameraWrapper(String cameraName, String logTagPosesName, Transform3d robotToCamera, Field2d field2d, BiConsumer<Pose2d, Double> addVisionMeasurement, AprilTagFieldLayout fieldLayout) {
+    private double prevTimestamp = 0;
+
+    public PhotonCameraWrapper(String cameraName, Transform3d robotToCamera, Field2d field2d, BiConsumer<Pose2d, Double> addVisionMeasurement, AprilTagFieldLayout fieldLayout) {
         m_field2d = field2d;
         m_addVisionMeasurement = addVisionMeasurement;
         estimatedPoseNTName = cameraName + " EstPose";
         m_robotToCamera = robotToCamera;
 
-        m_tagPosesLog = new DoubleArrayLogEntry(DataLogManager.getLog(), logTagPosesName);
+        DataLog log = DataLogManager.getLog();
+        m_tagPosesLog = new DoubleArrayLogEntry(log, cameraName + "TagPoses");
+        m_tagIDsLog = new IntegerArrayLogEntry(log, cameraName + "TagIDs");
 
         // Change the name of your camera here to whatever it is in the PhotonVision UI.
         photonCamera = new PhotonCamera(cameraName);
@@ -83,7 +93,7 @@ public class PhotonCameraWrapper {
 
         Optional<EstimatedRobotPose> result = photonPoseEstimator.update();
 
-        if (result.isPresent()) {
+        if (result.isPresent() && checkValid(result, prevEstimatedRobotPose)) {
             EstimatedRobotPose estimatedRobotPose = result.get();
             m_addVisionMeasurement.accept(estimatedRobotPose.estimatedPose.toPose2d(), 
                     estimatedRobotPose.timestampSeconds);
@@ -92,15 +102,59 @@ public class PhotonCameraWrapper {
 
             List<PhotonTrackedTarget> targets = estimatedRobotPose.targetsUsed;
             List<Pose3d> targetPoses = new ArrayList<>();
+            List<Integer> targetTagIDs = new ArrayList<>();
             for (PhotonTrackedTarget target : targets) {
                 targetPoses.add(new Pose3d(prevEstimatedRobotPose).transformBy(m_robotToCamera).transformBy(target.getBestCameraToTarget()));
+                targetTagIDs.add(target.getFiducialId());
             }
             m_tagPosesLog.append(AdvantageUtil.deconstructPose3ds(targetPoses));
+            m_tagIDsLog.append(convertIntegers(targetTagIDs));
                     
         } else {
             // move it way off the screen to make it disappear
             m_field2d.getObject(estimatedPoseNTName).setPose(new Pose2d(-100, -100, new Rotation2d()));
             m_tagPosesLog.append(new double[]{});
+            m_tagIDsLog.append(new long[]{});
         }
+    }
+
+    private boolean checkValid(Optional<EstimatedRobotPose> result, Pose2d prevEstimatedPose) {
+        if (result.isEmpty()) {
+            return false;
+        }
+
+        EstimatedRobotPose estimatedRobotPose = result.get();
+
+        if (areFloatsEqual(estimatedRobotPose.timestampSeconds, prevTimestamp)) {
+            prevTimestamp = estimatedRobotPose.timestampSeconds;
+        } else {
+            return false;
+        }
+
+        if (Math.abs(estimatedRobotPose.estimatedPose.toPose2d().getTranslation().getDistance(prevEstimatedPose.getTranslation())) 
+                     > APRILTAG.ALLOWABLE_DISTANCE_ERROR) {
+            return false;
+        }
+
+        // All checks passed
+        return true;
+    }
+
+    private boolean areFloatsEqual(double val1, double val2) {
+        return Math.abs(val1 - val2) < GENERAL.FLOAT_EQUALS_TOLARENCE;
+    }
+
+    private long[] convertIntegers(List<Integer> integers) {
+        long[] arr = new long[integers.size()];
+        for (int i = 0; i < integers.size(); i++) {
+            Integer value = integers.get(i);
+            if (value == null) {
+                DriverStation.reportError("Failed to log tag id, null integer.", true);
+                arr[i] = -1;
+            } else {
+                arr[i] = value.longValue();
+            }
+        }
+        return arr;
     }
 }

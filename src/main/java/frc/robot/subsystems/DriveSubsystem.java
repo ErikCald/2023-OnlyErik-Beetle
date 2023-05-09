@@ -15,30 +15,29 @@ import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
-import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.lib2706.CTREUnits;
 import frc.robot.Config.CANID;
 import frc.robot.Config.DIFF;
 import frc.robot.Config.DIFF_SIMULATION;
+import frc.robot.auto.AprilTagVision;
 
 public class DriveSubsystem extends SubsystemBase {
+    AprilTagVision m_aprilTagVision;
+
     WPI_TalonSRX m_leftMotor, m_rightMotor;
     PigeonIMU m_pigeon;
 
     DifferentialDrive m_teleopDrive;
     DifferentialDrivePoseEstimator m_poseEstimator;
-
-    Field2d m_field = new Field2d();
     
     TalonSRXSimCollection m_simLeftMotor, m_simRightMotor;
     BasePigeonSimCollection m_simPigeon;
@@ -47,6 +46,8 @@ public class DriveSubsystem extends SubsystemBase {
 
     /** Creates a new DifferentialDrive. */
     public DriveSubsystem() {
+        m_aprilTagVision = new AprilTagVision(this::addVisionMeasurement);
+
         m_leftMotor = new WPI_TalonSRX(CANID.DIFF_LEFT);
         m_rightMotor = new WPI_TalonSRX(CANID.DIFF_RIGHT);
 
@@ -76,9 +77,7 @@ public class DriveSubsystem extends SubsystemBase {
             getGyroYaw(),
             getLeftDistance(),
             getRightDistance(),
-            new Pose2d()); 
-
-        SmartDashboard.putData("Field", m_field);
+            new Pose2d());
 
         createNT();
     }
@@ -97,7 +96,12 @@ public class DriveSubsystem extends SubsystemBase {
             getLeftDistance(), 
             getRightDistance());
 
-        m_field.setRobotPose(newPose);
+        // Poll apriltag cameras and update pose estimator
+        m_aprilTagVision.update(newPose);
+    }
+
+    public void addVisionMeasurement(Pose2d pose, double timestamp) {
+        m_poseEstimator.addVisionMeasurement(pose, timestamp);
     }
 
     public void arcadeDrive(double leftSpeed, double rightSpeed) {
@@ -174,6 +178,10 @@ public class DriveSubsystem extends SubsystemBase {
         );
     }
 
+    public ChassisSpeeds getSpeeds() {
+        return DIFF.KINEMATICS.toChassisSpeeds(getWheelSpeeds());
+    }
+
     public void setWheelVoltages(double leftVoltage, double rightVoltage) {
         m_leftMotor.setVoltage(leftVoltage);
         m_rightMotor.setVoltage(rightVoltage);
@@ -188,10 +196,9 @@ public class DriveSubsystem extends SubsystemBase {
         m_rightMotor.stopMotor();
     }
 
-    public void setField2dTrajectory(PathPlannerTrajectory traj) {
-        m_field.getObject("traj").setTrajectory((Trajectory) traj);
+    public void updateField2dWithActiveTrajectory(PathPlannerTrajectory traj) {
+        m_aprilTagVision.setActiveTrajectory(traj);
     }
-
 
     @Override
     public void simulationPeriodic() {

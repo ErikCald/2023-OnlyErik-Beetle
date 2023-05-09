@@ -63,7 +63,7 @@ public class CreateAutoBuilder {
     private static void setPPCommandLogging(DriveSubsystem drive) {
         if (AUTO.USE_RAMSETE_NOT_LTV) {
             PPRamseteCommand.setLoggingCallbacks(
-                drive::setField2dTrajectory, 
+                drive::updateField2dWithActiveTrajectory, 
                 null, 
                 CreateAutoBuilder::logRamseteTargetSpeeds, 
                 CreateAutoBuilder::defaultLogError
@@ -72,7 +72,7 @@ public class CreateAutoBuilder {
             PPLTVDiffControllerCommand.setControllerDisabled(AUTO.DISABLE_FEEDBACK);
 
             PPLTVDiffControllerCommand.setLoggingCallbacks(
-                drive::setField2dTrajectory, 
+                drive::updateField2dWithActiveTrajectory, 
                 null, 
                 null, 
                 CreateAutoBuilder::defaultLogError, 

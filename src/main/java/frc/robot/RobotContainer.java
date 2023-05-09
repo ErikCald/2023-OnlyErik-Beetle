@@ -4,13 +4,8 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.server.PathPlannerServer;
-
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.lib.lib8727.PPLTVDiffControllerCommand;
 import frc.robot.Config.JOYSTICK;
 import frc.robot.auto.AutoRoutines;
 import frc.robot.commands.ArcadeDrive;
@@ -30,7 +25,7 @@ public class RobotContainer {
 
     // Joysticks
     private final CommandXboxController driver = new CommandXboxController(JOYSTICK.DRIVER_JOYSTICK_PORT);
-    private final CommandXboxController operator = new CommandXboxController(JOYSTICK.OPERATOR_JOYSTICK_PORT);
+    // private final CommandXboxController operator = new CommandXboxController(JOYSTICK.OPERATOR_JOYSTICK_PORT);
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.

@@ -11,6 +11,9 @@ import edu.wpi.first.math.controller.DifferentialDriveFeedforward;
 import edu.wpi.first.math.controller.LTVDifferentialDriveController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
@@ -26,6 +29,8 @@ import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
 public final class Config {
     public static class GENERAL {
         public static final double RIO_CYCLE_TIME = 0.02;
+        
+        public static final double FLOAT_EQUALS_TOLARENCE = 0.0001;
     }
 
     public static class JOYSTICK {
@@ -54,7 +59,7 @@ public final class Config {
         public static final DifferentialDriveKinematics KINEMATICS = new DifferentialDriveKinematics(TRACKWIDTH);
 
 
-        public static final double kV_LINEAR = 2.5; // Values copied from 6498
+        public static final double kV_LINEAR = 2.5;
         public static final double kA_LINEAR = 1;
         public static final double kV_ANGULAR = 0.37;
         public static final double KA_ANGULAR = 0.12;
@@ -115,5 +120,23 @@ public final class Config {
         public static final boolean USE_RAMSETE_NOT_LTV = true;
         public static final double VEL = 2;
         public static final double ACCEL = 4;
+    }
+
+    public static class VISION {
+        public static class APRILTAG {
+            public static final double ALLOWABLE_DISTANCE_ERROR = 1.0;
+
+            /*
+             * Put all photon vision april tag cameras here. 
+             * Must include the name of the camera on PhotonVision and the location of the camera on the robot (origin is the center on the floor).
+             * Make sure the arrays line up so that the index of the name is the same as the index of the locations.
+             */
+            public static String[] PHOTON_CAMERA_NAMES = {
+                "camera1"
+            };
+            public static Transform3d[] PHOTON_CAMERA_LOCATIONS = {
+                new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0))
+            };
+        }
     }
 }
