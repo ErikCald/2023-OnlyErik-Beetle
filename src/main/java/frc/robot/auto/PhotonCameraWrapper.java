@@ -161,9 +161,10 @@ public class PhotonCameraWrapper {
         EstimatedRobotPose estimatedRobotPose = result.get();
 
         if (areFloatsEqual(estimatedRobotPose.timestampSeconds, prevTimestamp)) {
-            prevTimestamp = estimatedRobotPose.timestampSeconds;
-        } else {
+            System.out.println("Reject Pose due to stale data");
             return false;
+        } else {
+            prevTimestamp = estimatedRobotPose.timestampSeconds;
         }
 
         // if (Math.abs(estimatedRobotPose.estimatedPose.toPose2d().getTranslation().getDistance(prevEstimatedPose.getTranslation())) 

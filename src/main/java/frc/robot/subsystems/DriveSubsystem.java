@@ -159,6 +159,8 @@ public class DriveSubsystem extends SubsystemBase {
             getLeftDistance(), 
             getRightDistance(), 
             pose);
+
+        System.out.println("Pose Reset");
     }
 
     /**

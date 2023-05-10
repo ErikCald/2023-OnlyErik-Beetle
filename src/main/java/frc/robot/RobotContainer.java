@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -41,6 +45,8 @@ public class RobotContainer {
      */
     private void configureBindings() {
         drive.setDefaultCommand(new ArcadeDrive(driver, 1, 2, drive));// XboxController.Axis.kLeftY.value, XboxController.Axis.kRightX.value, drive));
+
+        driver.a().onTrue(Commands.runOnce(() -> drive.resetPose(new Pose2d(4 - Units.inchesToMeters(12), 4, new Rotation2d()))));
     }
 
     /**

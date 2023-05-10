@@ -4,13 +4,18 @@
 
 package frc.robot;
 
+import java.util.List;
+
 import com.pathplanner.lib.auto.PIDConstants;
 
+import edu.wpi.first.apriltag.AprilTag;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.DifferentialDriveFeedforward;
 import edu.wpi.first.math.controller.LTVDifferentialDriveController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -135,8 +140,29 @@ public final class Config {
                 "FrontTopMSLifeCam"
             };
             public static Transform3d[] PHOTON_CAMERA_LOCATIONS = {
-                new Transform3d(new Translation3d(0, 0, 0.3), new Rotation3d(0, 0, 0))
+                new Transform3d(new Translation3d(
+                    Units.inchesToMeters(8.25), 
+                    Units.inchesToMeters(1.73), 
+                    Units.inchesToMeters(13)), 
+                    new Rotation3d(0, 0, 0))
             };
+             
+            public static double FIELD_LENGTH_2023 = 16.54175;
+            public static double FIELD_WIDTH_2023 = 8.0137;
+
+            public static AprilTagFieldLayout FIELDLAYOUT_ERIK_TOP_FLOOR_TEST = new AprilTagFieldLayout(
+                List.of(
+                    new AprilTag(1, new Pose3d(
+                        4, 4, Units.inchesToMeters(14.5),
+                        new Rotation3d(0, 0, Math.toRadians(180)))),
+                    new AprilTag(2, new Pose3d(
+                        0, 0, 0,
+                        new Rotation3d(0, 0, 0)))
+                ), 
+                FIELD_LENGTH_2023, 
+                FIELD_WIDTH_2023
+            );
+
         }
     }
 }

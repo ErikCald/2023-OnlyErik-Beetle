@@ -7,10 +7,10 @@ import java.util.function.BiConsumer;
 import com.pathplanner.lib.PathPlannerTrajectory;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Config.VISION.APRILTAG;
@@ -27,16 +27,21 @@ public class AprilTagVision {
         m_field2d = new Field2d();
 
         SmartDashboard.putData("field2d", m_field2d);
-        
-        try {
-            // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
-            fieldLayout = AprilTagFields.k2023ChargedUp.loadAprilTagLayoutField();
-        } catch (IOException e) {
-            // The AprilTagFieldLayout failed to load. We won't be able to estimate poses if we don't know
-            // where the tags are.
-            DriverStation.reportError("Failed to load AprilTagFieldLayout. AprilTag vision disabled.", e.getStackTrace());
-            fieldLayout = null;
-        }
+        fieldLayout = APRILTAG.FIELDLAYOUT_ERIK_TOP_FLOOR_TEST; 
+        // try {
+        //     // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
+        //     // fieldLayout = AprilTagFields.k2023ChargedUp.loadAprilTagLayoutField();
+
+        //     // fieldLayout = new AprilTagFieldLayout("frc/robot/auto/erikTopFloorTest1.json");//"apriltagfieldlayouts/erikTopFloorTest1.json");//new AprilTagFieldLayout("apriltagfieldlayouts/erikTopFloorTest1.json");
+        //     // fieldLayout = new AprilTagFieldLayout(Filesystem.getDeployDirectory().getPath() + "erikTopFloorTest1.json");
+            
+        //     System.out.println(fieldLayout);
+        // } catch (IOException e) {
+        //     // The AprilTagFieldLayout failed to load. We won't be able to estimate poses if we don't know
+        //     // where the tags are.
+        //     DriverStation.reportError("Failed to load AprilTagFieldLayout. AprilTag vision disabled.", e.getStackTrace());
+        //     fieldLayout = null;
+        // }
 
         if (fieldLayout != null) {
             if (APRILTAG.PHOTON_CAMERA_NAMES.length != APRILTAG.PHOTON_CAMERA_LOCATIONS.length) {
