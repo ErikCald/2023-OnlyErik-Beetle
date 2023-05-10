@@ -44,14 +44,14 @@ public final class Config {
         public static final int DIFF_LEFT = 2;
         public static final int DIFF_RIGHT = 1;
 
-        public static final int PIGEON = 27;
+        public static final int PIGEON = 30;
     }
 
     public static class DIFF {
         public static final boolean INVERT_LEFT_MOTOR = false;
         public static final boolean INVERT_RIGHT_MOTOR = true;
-        public static final boolean INVERT_LEFT_ENCODER = false;
-        public static final boolean INVERT_RIGHT_ENCODER = false;
+        public static final boolean INVERT_LEFT_ENCODER = true;
+        public static final boolean INVERT_RIGHT_ENCODER = true;
 
         public static final double WHEEL_DIAMETER = 0.1016; // 4 inches = 0.1016 meters
 
@@ -132,10 +132,10 @@ public final class Config {
              * Make sure the arrays line up so that the index of the name is the same as the index of the locations.
              */
             public static String[] PHOTON_CAMERA_NAMES = {
-                "camera1"
+                "FrontTopMSLifeCam"
             };
             public static Transform3d[] PHOTON_CAMERA_LOCATIONS = {
-                new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0))
+                new Transform3d(new Translation3d(0, 0, 0.3), new Rotation3d(0, 0, 0))
             };
         }
     }

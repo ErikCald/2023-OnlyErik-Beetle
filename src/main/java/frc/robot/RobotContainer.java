@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Config.JOYSTICK;
 import frc.robot.auto.AutoRoutines;
@@ -54,6 +55,7 @@ public class RobotContainer {
         // return autoRoutines.drivePath("driveForward");
         // return autoRoutines.drivePath("curve");
         // return autoRoutines.drivePath("sCurve");
-        return autoRoutines.drivePath("fancy");
+        // return autoRoutines.drivePath("fancy");
+        return Commands.run(()-> drive.arcadeDrive(0.2, 0), drive).alongWith(Commands.run(() -> drive.getWheelSpeeds()));
     }
 }

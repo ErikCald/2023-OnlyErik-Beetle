@@ -77,7 +77,7 @@ public class DriveSubsystem extends SubsystemBase {
             getGyroYaw(),
             getLeftDistance(),
             getRightDistance(),
-            new Pose2d());
+            new Pose2d(4, 2, Rotation2d.fromDegrees(180)));
 
         createNT();
     }
@@ -98,14 +98,16 @@ public class DriveSubsystem extends SubsystemBase {
 
         // Poll apriltag cameras and update pose estimator
         m_aprilTagVision.update(newPose);
+
+        getWheelSpeeds();
     }
 
     public void addVisionMeasurement(Pose2d pose, double timestamp) {
         m_poseEstimator.addVisionMeasurement(pose, timestamp);
     }
 
-    public void arcadeDrive(double leftSpeed, double rightSpeed) {
-        m_teleopDrive.arcadeDrive(leftSpeed, rightSpeed);
+    public void arcadeDrive(double forwardSpeed, double rotationSpeed) {
+        m_teleopDrive.arcadeDrive(forwardSpeed, rotationSpeed);
     }
     
     /**

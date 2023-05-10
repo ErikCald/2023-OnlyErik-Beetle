@@ -88,18 +88,44 @@ public class PhotonCameraWrapper {
      * @return an EstimatedRobotPose with an estimated pose, the timestamp, and targets used to create
      *     the estimate
      */
+    // public void update(Pose2d prevEstimatedRobotPose) {
+    //     photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
+
+    //     Optional<EstimatedRobotPose> result = photonPoseEstimator.update();
+
+    //     if (result.isPresent() && checkValid(result, prevEstimatedRobotPose)) {
+    //         EstimatedRobotPose estimatedRobotPose = result.get();
+    //         m_addVisionMeasurement.accept(estimatedRobotPose.estimatedPose.toPose2d(), 
+    //                 estimatedRobotPose.timestampSeconds);
+        
+    //         m_field2d.getObject(estimatedPoseNTName).setPose(estimatedRobotPose.estimatedPose.toPose2d());
+
+    //         List<PhotonTrackedTarget> targets = estimatedRobotPose.targetsUsed;
+    //         List<Pose3d> targetPoses = new ArrayList<>();
+    //         List<Integer> targetTagIDs = new ArrayList<>();
+    //         for (PhotonTrackedTarget target : targets) {
+    //             targetPoses.add(new Pose3d(prevEstimatedRobotPose).transformBy(m_robotToCamera).transformBy(target.getBestCameraToTarget()));
+    //             targetTagIDs.add(target.getFiducialId());
+    //         }
+    //         m_tagPosesLog.append(AdvantageUtil.deconstructPose3ds(targetPoses));
+    //         m_tagIDsLog.append(convertIntegers(targetTagIDs));
+                    
+    //     } else {
+    //         // move it way off the screen to make it disappear
+    //         m_field2d.getObject(estimatedPoseNTName).setPose(new Pose2d(-100, -100, new Rotation2d()));
+    //         m_tagPosesLog.append(new double[]{});
+    //         m_tagIDsLog.append(new long[]{});
+    //     }
+    // }
+
+
     public void update(Pose2d prevEstimatedRobotPose) {
         photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
 
         Optional<EstimatedRobotPose> result = photonPoseEstimator.update();
 
-        if (result.isPresent() && checkValid(result, prevEstimatedRobotPose)) {
+        if (result.isPresent()) {
             EstimatedRobotPose estimatedRobotPose = result.get();
-            m_addVisionMeasurement.accept(estimatedRobotPose.estimatedPose.toPose2d(), 
-                    estimatedRobotPose.timestampSeconds);
-        
-            m_field2d.getObject(estimatedPoseNTName).setPose(estimatedRobotPose.estimatedPose.toPose2d());
-
             List<PhotonTrackedTarget> targets = estimatedRobotPose.targetsUsed;
             List<Pose3d> targetPoses = new ArrayList<>();
             List<Integer> targetTagIDs = new ArrayList<>();
@@ -109,13 +135,22 @@ public class PhotonCameraWrapper {
             }
             m_tagPosesLog.append(AdvantageUtil.deconstructPose3ds(targetPoses));
             m_tagIDsLog.append(convertIntegers(targetTagIDs));
-                    
         } else {
             // move it way off the screen to make it disappear
             m_field2d.getObject(estimatedPoseNTName).setPose(new Pose2d(-100, -100, new Rotation2d()));
             m_tagPosesLog.append(new double[]{});
             m_tagIDsLog.append(new long[]{});
         }
+
+
+        if (result.isPresent() && checkValid(result, prevEstimatedRobotPose)) {
+            EstimatedRobotPose estimatedRobotPose = result.get();
+            m_addVisionMeasurement.accept(estimatedRobotPose.estimatedPose.toPose2d(), 
+                    estimatedRobotPose.timestampSeconds);
+        
+            m_field2d.getObject(estimatedPoseNTName).setPose(estimatedRobotPose.estimatedPose.toPose2d());
+                
+        } 
     }
 
     private boolean checkValid(Optional<EstimatedRobotPose> result, Pose2d prevEstimatedPose) {
@@ -131,10 +166,10 @@ public class PhotonCameraWrapper {
             return false;
         }
 
-        if (Math.abs(estimatedRobotPose.estimatedPose.toPose2d().getTranslation().getDistance(prevEstimatedPose.getTranslation())) 
-                     > APRILTAG.ALLOWABLE_DISTANCE_ERROR) {
-            return false;
-        }
+        // if (Math.abs(estimatedRobotPose.estimatedPose.toPose2d().getTranslation().getDistance(prevEstimatedPose.getTranslation())) 
+        //              > APRILTAG.ALLOWABLE_DISTANCE_ERROR) {
+        //     return false;
+        // }
 
         // All checks passed
         return true;
