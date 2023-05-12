@@ -19,7 +19,7 @@ public class AprilTagVision {
     
     private Field2d m_field2d;
 
-    private ArrayList<PhotonCameraWrapper> cameras;
+    private ArrayList<PhotonCameraAprilTagWrapper> cameras;
     private AprilTagFieldLayout fieldLayout;
 
     public AprilTagVision(BiConsumer<Pose2d, Double> addVisionMeasurement) {
@@ -52,10 +52,9 @@ public class AprilTagVision {
             }
 
             for (int i = 0; i < APRILTAG.PHOTON_CAMERA_NAMES.length; i++) {
-                cameras.add(new PhotonCameraWrapper(
+                cameras.add(new PhotonCameraAprilTagWrapper(
                     APRILTAG.PHOTON_CAMERA_NAMES[i], // PhotoCamera name
                     APRILTAG.PHOTON_CAMERA_LOCATIONS[i], // Location of camera on robot
-                    m_field2d,
                     addVisionMeasurement, 
                     fieldLayout
                 ));
@@ -70,7 +69,7 @@ public class AprilTagVision {
             return;
         }
 
-        for (PhotonCameraWrapper camera : cameras) {
+        for (PhotonCameraAprilTagWrapper camera : cameras) {
             camera.update(prevPoseEstimate);
         }
     }
