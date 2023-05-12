@@ -16,15 +16,19 @@ import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.PubSub;
 import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.lib2706.CTREUnits;
+import frc.lib.lib686.AdvantageUtil;
 import frc.robot.Config.CANID;
 import frc.robot.Config.DIFF;
 import frc.robot.Config.DIFF_SIMULATION;
@@ -38,11 +42,13 @@ public class DriveSubsystem extends SubsystemBase {
 
     DifferentialDrive m_teleopDrive;
     DifferentialDrivePoseEstimator m_poseEstimator;
+    DifferentialDriveOdometry m_odometry;
     
     TalonSRXSimCollection m_simLeftMotor, m_simRightMotor;
     BasePigeonSimCollection m_simPigeon;
 
     DoublePublisher pubLeftVel, pubRightVel;
+    DoubleArrayPublisher pubOdometryPose, pubEstimatorPose;
 
     /** Creates a new DifferentialDrive. */
     public DriveSubsystem() {
@@ -79,6 +85,12 @@ public class DriveSubsystem extends SubsystemBase {
             getRightDistance(),
             new Pose2d(4, 2, Rotation2d.fromDegrees(180)));
 
+        m_odometry = new DifferentialDriveOdometry(
+            getGyroYaw(), 
+            getLeftDistance(), 
+            getRightDistance(), 
+            new Pose2d(4, 2, Rotation2d.fromDegrees(180)));
+
         createNT();
     }
 
@@ -86,7 +98,9 @@ public class DriveSubsystem extends SubsystemBase {
         NetworkTable table = NetworkTableInstance.getDefault().getTable("Drive");
         pubLeftVel = table.getDoubleTopic("MeasuredLeftVelocity").publish(PubSubOption.periodic(0.02));
         pubRightVel = table.getDoubleTopic("MeasuredRightVelocity").publish(PubSubOption.periodic(0.02));
-        
+
+        pubOdometryPose = table.getDoubleArrayTopic("OdometryPose").publish(PubSubOption.periodic(0.02));
+        pubEstimatorPose = table.getDoubleArrayTopic("EstimatorPose").publish(PubSubOption.periodic(0.02));
     }
 
     @Override
@@ -96,8 +110,17 @@ public class DriveSubsystem extends SubsystemBase {
             getLeftDistance(), 
             getRightDistance());
 
+        Pose2d odometryPose = m_odometry.update(
+            getGyroYaw(), 
+            getLeftDistance(), 
+            getRightDistance());
+
+        pubEstimatorPose.accept(AdvantageUtil.deconstruct(newPose));
+        pubOdometryPose.accept(AdvantageUtil.deconstruct(odometryPose));
+
         // Poll apriltag cameras and update pose estimator
-        m_aprilTagVision.update(newPose);
+        // m_aprilTagVision.update(newPose);
+        m_aprilTagVision.update(odometryPose);
 
         getWheelSpeeds();
     }
@@ -155,6 +178,11 @@ public class DriveSubsystem extends SubsystemBase {
 
     public void resetPose(Pose2d pose) {
         m_poseEstimator.resetPosition(
+            getGyroYaw(), 
+            getLeftDistance(), 
+            getRightDistance(), 
+            pose);
+        m_odometry.resetPosition(
             getGyroYaw(), 
             getLeftDistance(), 
             getRightDistance(), 

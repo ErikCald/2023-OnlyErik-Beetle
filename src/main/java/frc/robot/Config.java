@@ -137,14 +137,21 @@ public final class Config {
              * Make sure the arrays line up so that the index of the name is the same as the index of the locations.
              */
             public static String[] PHOTON_CAMERA_NAMES = {
-                "FrontTopMSLifeCam"
+                // "FrontTopMSLifeCam"
+                "ELPBACK"
             };
             public static Transform3d[] PHOTON_CAMERA_LOCATIONS = {
+                // new Transform3d(new Translation3d(
+                //     Units.inchesToMeters(8.25), 
+                //     Units.inchesToMeters(1.73), 
+                //     Units.inchesToMeters(13)), 
+                //     new Rotation3d(0, 0, Units.degreesToRadians(0)))
+
                 new Transform3d(new Translation3d(
-                    Units.inchesToMeters(8.25), 
-                    Units.inchesToMeters(1.73), 
-                    Units.inchesToMeters(13)), 
-                    new Rotation3d(0, 0, 0))
+                    -0.11, 
+                    0, 
+                    0.39), 
+                    new Rotation3d(0, 0, Units.degreesToRadians(180)))
             };
              
             public static double FIELD_LENGTH_2023 = 16.54175;
@@ -152,17 +159,47 @@ public final class Config {
 
             public static AprilTagFieldLayout FIELDLAYOUT_ERIK_TOP_FLOOR_TEST = new AprilTagFieldLayout(
                 List.of(
-                    new AprilTag(1, new Pose3d(
-                        4, 4, Units.inchesToMeters(14.5),
-                        new Rotation3d(0, 0, Math.toRadians(180)))),
                     new AprilTag(2, new Pose3d(
-                        0, 0, 0,
-                        new Rotation3d(0, 0, 0)))
+                        4, 4, Units.inchesToMeters(13),
+                        new Rotation3d(0, 0, Math.toRadians(180)))),
+                    new AprilTag(19, new Pose3d(
+                        4, 4-Units.inchesToMeters(34), Units.inchesToMeters(13),
+                        new Rotation3d(0, 0, Math.toRadians(180))))
                 ), 
                 FIELD_LENGTH_2023, 
                 FIELD_WIDTH_2023
             );
 
+            public static AprilTagFieldLayout FIELDLAYOUT_ERIK_BOTTOM_FLOOR = new AprilTagFieldLayout(
+                List.of(
+                    new AprilTag(1, new Pose3d(
+                        7.794, 0.307, 1.562,
+                        new Rotation3d(0, 0, Math.toRadians(180)))),
+                    new AprilTag(2, new Pose3d(
+                        7.794, 0.409, 0.404,
+                        new Rotation3d(0, 0, Math.toRadians(180)))),
+                    new AprilTag(3, new Pose3d(
+                        6.072, 0.0, 0.407,
+                        new Rotation3d(0, 0, Math.toRadians(90)))),
+                    new AprilTag(4, new Pose3d(
+                        0, 0, 0,
+                        new Rotation3d(0, 0, Math.toRadians(-90)))),
+                    new AprilTag(5, new Pose3d(
+                        5.092, 0.0, 0.408,
+                        new Rotation3d(0, 0, Math.toRadians(90)))),
+                    new AprilTag(6, new Pose3d(
+                        3.448, 0.0, 0.404,
+                        new Rotation3d(0, 0, Math.toRadians(90)))),
+                    new AprilTag(7, new Pose3d(
+                        7.794, 0.704, 1.565,
+                        new Rotation3d(0, 0, Math.toRadians(180)))),
+                    new AprilTag(8, new Pose3d(
+                        0.0, 0.52, 0.405,
+                        new Rotation3d(0, 0, Math.toRadians(0))))
+                ), 
+                FIELD_LENGTH_2023, 
+                FIELD_WIDTH_2023
+            );
         }
     }
 }

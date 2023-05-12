@@ -40,6 +40,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
+import edu.wpi.first.networktables.IntegerArrayPublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.util.datalog.DoubleArrayLogEntry;
 import edu.wpi.first.util.datalog.IntegerArrayLogEntry;
@@ -48,13 +53,16 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.lib.lib686.AdvantageUtil;
 import frc.robot.Config.GENERAL;
-import frc.robot.Config.VISION.APRILTAG;
 
 public class PhotonCameraWrapper {
     private Field2d m_field2d;
     private String estimatedPoseNTName;
-    private DoubleArrayLogEntry m_tagPosesLog;
+    private DoubleArrayLogEntry m_estimatedPoseLog, m_tagPosesLog;
     private IntegerArrayLogEntry m_tagIDsLog;
+
+    private DoubleArrayPublisher m_estimatedPosePub, m_tagPosesPub;
+    private IntegerArrayPublisher m_tagIDsPub;
+
     private Transform3d m_robotToCamera;
     private BiConsumer<Pose2d, Double> m_addVisionMeasurement;
     private PhotonCamera photonCamera;
@@ -69,8 +77,16 @@ public class PhotonCameraWrapper {
         m_robotToCamera = robotToCamera;
 
         DataLog log = DataLogManager.getLog();
+        m_estimatedPoseLog = new DoubleArrayLogEntry(log, cameraName + "EstPose");
         m_tagPosesLog = new DoubleArrayLogEntry(log, cameraName + "TagPoses");
         m_tagIDsLog = new IntegerArrayLogEntry(log, cameraName + "TagIDs");
+        
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("AprilTags");
+        m_estimatedPosePub = table.getDoubleArrayTopic(cameraName + "EstPose").publish(PubSubOption.periodic(0.02));
+        m_tagPosesPub = table.getDoubleArrayTopic(cameraName + "TagPoses").publish(PubSubOption.periodic(0.02));
+        m_tagIDsPub = table.getIntegerArrayTopic(cameraName + "TagIDs").publish(PubSubOption.periodic(0.02));
+        
+
 
         // Change the name of your camera here to whatever it is in the PhotonVision UI.
         photonCamera = new PhotonCamera(cameraName);
@@ -135,11 +151,17 @@ public class PhotonCameraWrapper {
             }
             m_tagPosesLog.append(AdvantageUtil.deconstructPose3ds(targetPoses));
             m_tagIDsLog.append(convertIntegers(targetTagIDs));
+            m_tagIDsPub.accept(convertIntegers(targetTagIDs));
+            m_tagPosesPub.accept(AdvantageUtil.deconstructPose3ds(targetPoses));
         } else {
             // move it way off the screen to make it disappear
+            m_estimatedPoseLog.append(new double[]{});
+            m_estimatedPosePub.accept(new double[]{});
             m_field2d.getObject(estimatedPoseNTName).setPose(new Pose2d(-100, -100, new Rotation2d()));
             m_tagPosesLog.append(new double[]{});
             m_tagIDsLog.append(new long[]{});
+            m_tagIDsPub.accept(new long[]{});
+            m_tagPosesPub.accept(new double[]{});
         }
 
 
@@ -148,6 +170,8 @@ public class PhotonCameraWrapper {
             m_addVisionMeasurement.accept(estimatedRobotPose.estimatedPose.toPose2d(), 
                     estimatedRobotPose.timestampSeconds);
         
+            m_estimatedPosePub.accept(AdvantageUtil.deconstruct(estimatedRobotPose.estimatedPose.toPose2d()));
+            m_estimatedPoseLog.append(AdvantageUtil.deconstruct(estimatedRobotPose.estimatedPose.toPose2d()));
             m_field2d.getObject(estimatedPoseNTName).setPose(estimatedRobotPose.estimatedPose.toPose2d());
                 
         } 
