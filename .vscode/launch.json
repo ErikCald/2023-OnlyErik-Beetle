@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "Launch PhotonCameraAprilTagWrapper",
+      "request": "launch",
+      "mainClass": "frc.robot.auto.PhotonCameraAprilTagWrapper",
+      "projectName": "2023-OnlyErik-Beetle"
+    },
+    {
+      "type": "java",
       "name": "Launch AprilTagVision",
       "request": "launch",
       "mainClass": "frc.robot.auto.AprilTagVision",

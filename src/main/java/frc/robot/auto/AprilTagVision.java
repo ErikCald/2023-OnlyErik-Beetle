@@ -1,8 +1,9 @@
 package frc.robot.auto;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import com.pathplanner.lib.PathPlannerTrajectory;
 
@@ -10,7 +11,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Config.VISION.APRILTAG;
@@ -22,7 +22,7 @@ public class AprilTagVision {
     private ArrayList<PhotonCameraAprilTagWrapper> cameras;
     private AprilTagFieldLayout fieldLayout;
 
-    public AprilTagVision(BiConsumer<Pose2d, Double> addVisionMeasurement) {
+    public AprilTagVision(Function<Double, Optional<Pose2d>> getPoseAtTimestamp, BiConsumer<Pose2d, Double> addVisionMeasurement) {
         cameras = new ArrayList<>();
         m_field2d = new Field2d();
 
@@ -55,6 +55,7 @@ public class AprilTagVision {
                 cameras.add(new PhotonCameraAprilTagWrapper(
                     APRILTAG.PHOTON_CAMERA_NAMES[i], // PhotoCamera name
                     APRILTAG.PHOTON_CAMERA_LOCATIONS[i], // Location of camera on robot
+                    getPoseAtTimestamp,
                     addVisionMeasurement, 
                     fieldLayout
                 ));

@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import java.util.Optional;
+
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.TalonSRXSimCollection;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
@@ -12,7 +14,6 @@ import com.ctre.phoenix.sensors.PigeonIMU;
 import com.pathplanner.lib.PathPlannerTrajectory;
 
 import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
-import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -22,16 +23,19 @@ import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.PubSub;
 import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.lib2706.CTREUnits;
+import frc.lib.lib2706.DifferentialDrivePoseEstimatorExposed;
 import frc.lib.lib686.AdvantageUtil;
 import frc.robot.Config.CANID;
 import frc.robot.Config.DIFF;
 import frc.robot.Config.DIFF_SIMULATION;
+import frc.robot.Config.VISION.APRILTAG;
 import frc.robot.auto.AprilTagVision;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -41,7 +45,7 @@ public class DriveSubsystem extends SubsystemBase {
     PigeonIMU m_pigeon;
 
     DifferentialDrive m_teleopDrive;
-    DifferentialDrivePoseEstimator m_poseEstimator;
+    DifferentialDrivePoseEstimatorExposed m_poseEstimator;
     DifferentialDriveOdometry m_odometry;
     
     TalonSRXSimCollection m_simLeftMotor, m_simRightMotor;
@@ -50,9 +54,11 @@ public class DriveSubsystem extends SubsystemBase {
     DoublePublisher pubLeftVel, pubRightVel;
     DoubleArrayPublisher pubOdometryPose, pubEstimatorPose;
 
+    private boolean m_disableVisionFeedback = APRILTAG.DISABLE_VISION_FEEDBACK;
+
     /** Creates a new DifferentialDrive. */
     public DriveSubsystem() {
-        m_aprilTagVision = new AprilTagVision(this::addVisionMeasurement);
+        m_aprilTagVision = new AprilTagVision(this::getPoseAtTimestamp, this::addVisionMeasurement);
 
         m_leftMotor = new WPI_TalonSRX(CANID.DIFF_LEFT);
         m_rightMotor = new WPI_TalonSRX(CANID.DIFF_RIGHT);
@@ -78,7 +84,7 @@ public class DriveSubsystem extends SubsystemBase {
         m_simRightMotor = m_rightMotor.getSimCollection();
         m_simPigeon = m_pigeon.getSimCollection();
 
-        m_poseEstimator = new DifferentialDrivePoseEstimator(
+        m_poseEstimator = new DifferentialDrivePoseEstimatorExposed(
             DIFF.KINEMATICS, 
             getGyroYaw(),
             getLeftDistance(),
@@ -119,14 +125,26 @@ public class DriveSubsystem extends SubsystemBase {
         pubOdometryPose.accept(AdvantageUtil.deconstruct(odometryPose));
 
         // Poll apriltag cameras and update pose estimator
-        // m_aprilTagVision.update(newPose);
-        m_aprilTagVision.update(odometryPose);
+        m_aprilTagVision.update(newPose);
+        // m_aprilTagVision.update(odometryPose);
 
         getWheelSpeeds();
     }
 
+    public CommandBase getToggleVisionFeedbackCommand() {
+        return Commands.runOnce(
+            () -> m_disableVisionFeedback = !m_disableVisionFeedback,
+            this);
+    }
+
     public void addVisionMeasurement(Pose2d pose, double timestamp) {
-        m_poseEstimator.addVisionMeasurement(pose, timestamp);
+        if (!m_disableVisionFeedback) {
+            m_poseEstimator.addVisionMeasurement(pose, timestamp);
+        }
+    }
+
+    public Optional<Pose2d> getPoseAtTimestamp(double timestamp) {
+        return m_poseEstimator.getPoseAtTimestamp(timestamp);
     }
 
     public void arcadeDrive(double forwardSpeed, double rotationSpeed) {

@@ -129,7 +129,11 @@ public final class Config {
 
     public static class VISION {
         public static class APRILTAG {
-            public static final double ALLOWABLE_DISTANCE_ERROR = 1.0;
+            public static final boolean DISABLE_VISION_FEEDBACK = true;
+            public static final boolean DISABLE_TAG_TRIMMING = true;
+            public static final double ALLOWABLE_POSE_DISTANCE_ERROR = 1.0;
+            public static final double ALLOWABLE_TAG_DISTANCE_ERROR = 1.0;
+            public static final double ALLOWABLE_TAG_ANGLE_ERROR = 0.003; // Around 10 degree of error
 
             /*
              * Put all photon vision april tag cameras here. 
