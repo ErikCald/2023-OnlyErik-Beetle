@@ -166,7 +166,7 @@ public class DriveSubsystem extends SubsystemBase {
      * @return Distance of the left encoder in meters
      */
     private double getLeftDistance() {
-        return CTREUnits.talonPosistionToMeters(m_leftMotor.getSelectedSensorPosition());
+        return CTREUnits.talonPositionToMeters(m_leftMotor.getSelectedSensorPosition(), DIFF.WHEEL_DIAMETER);
     }
 
     /**
@@ -175,15 +175,15 @@ public class DriveSubsystem extends SubsystemBase {
      * @return Distance of the right encoder in meters
      */
     private double getRightDistance() {
-        return CTREUnits.talonPosistionToMeters(m_rightMotor.getSelectedSensorPosition());
+        return CTREUnits.talonPositionToMeters(m_rightMotor.getSelectedSensorPosition(), DIFF.WHEEL_DIAMETER);
     }
 
     private double getLeftVelocity() {
-        return CTREUnits.talonVelocityToMetersPerSecond(m_leftMotor.getSelectedSensorVelocity());
+        return CTREUnits.talonVelocityToMetersPerSecond(m_leftMotor.getSelectedSensorVelocity(), DIFF.WHEEL_DIAMETER);
     }
 
     private double getRightVelocity() {
-        return CTREUnits.talonVelocityToMetersPerSecond(m_rightMotor.getSelectedSensorVelocity());
+        return CTREUnits.talonVelocityToMetersPerSecond(m_rightMotor.getSelectedSensorVelocity(), DIFF.WHEEL_DIAMETER);
     }
     
     public Pose2d getPose() {
@@ -297,19 +297,19 @@ public class DriveSubsystem extends SubsystemBase {
          */
         m_simLeftMotor.setQuadratureRawPosition(
             (int) CTREUnits.metersToTalonPosistion(
-                DIFF_SIMULATION.SIMULATION.getLeftPositionMeters()));
+                DIFF_SIMULATION.SIMULATION.getLeftPositionMeters(), DIFF.WHEEL_DIAMETER));
 
         m_simLeftMotor.setQuadratureVelocity(
             (int) CTREUnits.metersPerSecondToTalonVelocity(
-                DIFF_SIMULATION.SIMULATION.getLeftVelocityMetersPerSecond()));
+                DIFF_SIMULATION.SIMULATION.getLeftVelocityMetersPerSecond(), DIFF.WHEEL_DIAMETER));
 
         m_simRightMotor.setQuadratureRawPosition(
             (int) CTREUnits.metersToTalonPosistion(
-                -DIFF_SIMULATION.SIMULATION.getRightPositionMeters()));
+                -DIFF_SIMULATION.SIMULATION.getRightPositionMeters(), DIFF.WHEEL_DIAMETER));
 
         m_simRightMotor.setQuadratureVelocity(
             (int) CTREUnits.metersPerSecondToTalonVelocity(
-                -DIFF_SIMULATION.SIMULATION.getRightVelocityMetersPerSecond()));
+                -DIFF_SIMULATION.SIMULATION.getRightVelocityMetersPerSecond(), DIFF.WHEEL_DIAMETER));
 
 
         m_simPigeon.setRawHeading(DIFF_SIMULATION.SIMULATION.getHeading().getDegrees());

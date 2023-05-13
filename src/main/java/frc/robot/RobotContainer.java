@@ -47,8 +47,10 @@ public class RobotContainer {
         drive.setDefaultCommand(new ArcadeDrive(driver, 1, 2, drive));
         // drive.setDefaultCommand(new ArcadeDrive(driver, XboxController.Axis.kLeftY.value, XboxController.Axis.kRightX.value, drive));
 
-        driver.a().onTrue(Commands.runOnce(() -> drive.resetPose(new Pose2d(0.315+0.1, 0.570/2.0+0.1, new Rotation2d()))));
+        driver.a().onTrue(Commands.runOnce(() -> drive.resetPose(new Pose2d(0.315+0.01, 0.570/2.0+0.01, new Rotation2d()))));
         driver.x().onTrue(drive.getToggleVisionFeedbackCommand());
+
+        driver.b().onTrue(Commands.runOnce(() -> drive.resetPose(new Pose2d(0.01, 0, new Rotation2d()))));
     }
 
     /**

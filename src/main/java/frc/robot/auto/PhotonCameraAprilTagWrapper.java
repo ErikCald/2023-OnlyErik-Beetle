@@ -24,6 +24,7 @@
 
 package frc.robot.auto;
 
+import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -48,7 +49,13 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.PubSub;
+import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.DriverStation;
+import frc.lib.lib686.AdvantageUtil;
 import frc.robot.Config.GENERAL;
 import frc.robot.Config.VISION.APRILTAG;
 
@@ -63,12 +70,14 @@ public class PhotonCameraAprilTagWrapper {
     private PhotonCamera m_photonCamera;
     private PhotonPoseEstimator m_photonPoseEstimator;
 
+    private DoubleArrayPublisher pubEstPose;
+
     private double prevTimestamp = 0;
     private double prevPipelineTimestamp = -1;
     
 
     public PhotonCameraAprilTagWrapper(String cameraName, Transform3d robotToCamera, Function<Double, Optional<Pose2d>> getPoseAtTimestamp, BiConsumer<Pose2d, Double> addVisionMeasurement, AprilTagFieldLayout fieldLayout) {
-        m_advScopeDisplay = new AdvScopeAprilTagPhotonCamera(cameraName, robotToCamera);
+        m_advScopeDisplay = new AdvScopeAprilTagPhotonCamera(cameraName, robotToCamera, fieldLayout);
         
         m_cameraName = cameraName;
         m_robotToCamera = robotToCamera;
@@ -84,14 +93,34 @@ public class PhotonCameraAprilTagWrapper {
                 new PhotonPoseEstimator(
                         fieldLayout, PoseStrategy.MULTI_TAG_PNP, m_photonCamera, robotToCamera);
         m_photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+
+        pubEstPose = NetworkTableInstance.getDefault().getTable("AprilTags").getDoubleArrayTopic("EstPoseV2").publish(PubSubOption.periodic(0.02));
     }
 
     public void update(Pose2d prevEstimatedRobotPose) {
         m_photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
 
-        PhotonPipelineResult pipelineResult = trimPipelineResult(m_photonCamera.getLatestResult());
-        
-        Optional<EstimatedRobotPose> result = m_photonPoseEstimator.update(pipelineResult);
+        Optional<EstimatedRobotPose> result;
+        if (APRILTAG.DISABLE_TAG_TRIMMING) {
+            result = m_photonPoseEstimator.update();
+        } else {
+            PhotonPipelineResult pipelineResult = m_photonCamera.getLatestResult();
+            
+            // Check if the timestamp is invalid or stale.
+            double pipelineTimestamp = pipelineResult.getTimestampSeconds();
+            if (pipelineTimestamp == -1 || areFloatsEqual(pipelineTimestamp, prevPipelineTimestamp)) {
+                m_advScopeDisplay.noNewData();
+                return;
+            } else {
+                prevPipelineTimestamp = pipelineTimestamp;
+            }
+
+            // Filter the pipeline
+            // testFilterPipelineResult(pipelineResult);
+            filterPipelineResult(pipelineResult);
+
+            result = m_photonPoseEstimator.update(pipelineResult);
+        }
         
         /*
          * No targets in view
@@ -102,6 +131,7 @@ public class PhotonCameraAprilTagWrapper {
         }
         
         EstimatedRobotPose estimatedRobotPose = result.get();
+        pubEstPose.accept(AdvantageUtil.deconstruct(estimatedRobotPose.estimatedPose.toPose2d()));
 
         Optional<Pose2d> optionalPoseAtTimestamp = m_getPoseAtTimestamp.apply(estimatedRobotPose.timestampSeconds);
         if (optionalPoseAtTimestamp.isEmpty()) {
@@ -138,29 +168,62 @@ public class PhotonCameraAprilTagWrapper {
             // Update AdvantageScope display
             m_advScopeDisplay.dataAccepted(estimatedRobotPose, poseAtTimestamp);
         } else {
-            // Data is discarded, dpddate AdvantageScope display
+            // Data is discarded, update AdvantageScope display
             m_advScopeDisplay.dataDiscarded(estimatedRobotPose, poseAtTimestamp);
         }
     }
 
-    private PhotonPipelineResult trimPipelineResult(PhotonPipelineResult pipelineResult) {
-        if (APRILTAG.DISABLE_TAG_TRIMMING) {
-            // Skip tag trimming
-            return pipelineResult;
-        }
-
+    private void testFilterPipelineResult(PhotonPipelineResult pipelineResult) {
         double pipelineTimestamp = pipelineResult.getTimestampSeconds();
 
-        if (pipelineTimestamp == -1 || areFloatsEqual(pipelineTimestamp, prevPipelineTimestamp)) {
+        if (pipelineTimestamp == -1) {
             // Skip tag trimming
-            return pipelineResult;
-        }
+            return;// pipelineResult;
+        } 
 
         Optional<Pose2d> optionalPoseAtTimestamp = m_getPoseAtTimestamp.apply(pipelineTimestamp);
 
         if (optionalPoseAtTimestamp.isEmpty()) {
             // Skip tag trimming
-            return pipelineResult;
+            return;// pipelineResult;
+        }
+        final int tagToRemove = 2;
+        List<Pose3d> tagRemovedPose = new ArrayList<>();
+        List<Integer> tagRemovedID = new ArrayList<>();
+        Iterator<PhotonTrackedTarget> iterator = pipelineResult.targets.iterator();
+        while (iterator.hasNext()) {
+            PhotonTrackedTarget target = iterator.next();
+            
+            if (target.getFiducialId() == tagToRemove) {
+                Pose3d bestTag = new Pose3d(optionalPoseAtTimestamp.get()).transformBy(m_robotToCamera).transformBy(target.getBestCameraToTarget());
+                tagRemovedPose.add(bestTag);
+                tagRemovedID.add(tagToRemove);
+                iterator.remove();
+                break;
+            }
+        }
+
+        m_advScopeDisplay.logRemovedTags(tagRemovedPose, tagRemovedID);
+    }
+
+    private void filterPipelineResult(PhotonPipelineResult pipelineResult) {
+        if (APRILTAG.DISABLE_TAG_TRIMMING) {
+            // Skip tag trimming
+            return;
+        }
+
+        double pipelineTimestamp = pipelineResult.getTimestampSeconds();
+
+        if (pipelineTimestamp == -1) { // || areFloatsEqual(pipelineTimestamp, prevPipelineTimestamp)) {
+            // Skip tag trimming
+            return;
+        } 
+
+        Optional<Pose2d> optionalPoseAtTimestamp = m_getPoseAtTimestamp.apply(pipelineTimestamp);
+
+        if (optionalPoseAtTimestamp.isEmpty()) {
+            // Skip tag trimming
+            return;
         }
 
         Pose2d poseAtTimeStamp = optionalPoseAtTimestamp.get();
@@ -168,7 +231,8 @@ public class PhotonCameraAprilTagWrapper {
 
         Iterator<PhotonTrackedTarget> iterator = pipelineResult.targets.iterator();
 
-        List<Pose3d> removedTags = new ArrayList<>();
+        List<Pose3d> removedTagsPoses = new ArrayList<>();
+        List<Integer> removedTagsIDs = new ArrayList<>();
         while (iterator.hasNext()) {
             PhotonTrackedTarget target = iterator.next();
             
@@ -177,37 +241,42 @@ public class PhotonCameraAprilTagWrapper {
             Pose3d bestTag = fieldToCam.transformBy(target.getBestCameraToTarget());
 
             if (tag.isEmpty()) {
-                removedTags.add(bestTag);
+                removedTagsPoses.add(bestTag);
+                removedTagsIDs.add(target.getFiducialId());
                 iterator.remove();
                 continue;
             }
 
             if (comparePoses(bestTag, tag.get(), APRILTAG.ALLOWABLE_TAG_DISTANCE_ERROR, APRILTAG.ALLOWABLE_TAG_ANGLE_ERROR)) {
-                continue;
+                continue; // BestTag is good, continue to the next tag
             }
 
             Pose3d altTag = fieldToCam.transformBy(target.getAlternateCameraToTarget());
 
             if (comparePoses(altTag, tag.get(), APRILTAG.ALLOWABLE_TAG_DISTANCE_ERROR, APRILTAG.ALLOWABLE_TAG_ANGLE_ERROR)) {
-                continue;
+                continue; // AltTag is good, continue to the next tag
             }
 
-            removedTags.add(bestTag);
+            removedTagsPoses.add(bestTag);
+            removedTagsIDs.add(target.getFiducialId());
             iterator.remove();            
         }
 
-        m_advScopeDisplay.logRemovedTags(removedTags);
-
-        return pipelineResult;
+        m_advScopeDisplay.logRemovedTags(removedTagsPoses, removedTagsIDs);
     }
 
     private boolean checkValid(EstimatedRobotPose estimatedRobotPose, Pose2d prevEstimatedPose, Pose2d poseAtTimestamp) {
-
-        if (Math.abs(estimatedRobotPose.estimatedPose.toPose2d().getTranslation().getDistance(prevEstimatedPose.getTranslation())) 
-                     > APRILTAG.ALLOWABLE_POSE_DISTANCE_ERROR) {
-            return false;
+        // If vision feedback is disabled then let everything through for the display
+        if (APRILTAG.DISABLE_VISION_FEEDBACK) {
+            return true;
         }
 
+        // Don't accept the data if it's more than 1 meter off of the previously estimated pose
+        if (Math.abs(estimatedRobotPose.estimatedPose.toPose2d().getTranslation().getDistance(poseAtTimestamp.getTranslation())) 
+                > APRILTAG.ALLOWABLE_POSE_DISTANCE_ERROR) {
+            return false;
+        }
+        
         // All checks passed
         return true;
     }

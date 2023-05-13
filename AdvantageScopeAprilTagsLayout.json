@@ -1,0 +1,87 @@
+{
+  "version": "2.3.0",
+  "layout": [
+    {
+      "type": 6,
+      "fields": [],
+      "listFields": [
+        [
+          {
+            "type": "AprilTag",
+            "key": "NT:/AdvScope/ELPBACK/LingeringTagPoses",
+            "fieldTypeIndex": 0
+          },
+          {
+            "type": "AprilTag ID",
+            "key": "NT:/AdvScope/ELPBACK/LingeringTagIDs",
+            "fieldTypeIndex": 0
+          },
+          {
+            "type": "Vision Target",
+            "key": "NT:/AdvScope/ELPBACK/AcceptedTagPoses",
+            "fieldTypeIndex": 0
+          },
+          {
+            "type": "AprilTag",
+            "key": "NT:/AdvScope/ELPBACK/FieldTagPose",
+            "fieldTypeIndex": 0
+          },
+          {
+            "type": "AprilTag ID",
+            "key": "NT:/AdvScope/ELPBACK/LingeringTagIDs",
+            "fieldTypeIndex": 0
+          },
+          {
+            "type": "Blue Cone (Center)",
+            "key": "NT:/AdvScope/ELPBACK/FieldTagPose",
+            "fieldTypeIndex": 0
+          },
+          {
+            "type": "AprilTag",
+            "key": "NT:/AdvScope/ELPBACK/RemovedTagsPoses",
+            "fieldTypeIndex": 0
+          },
+          {
+            "type": "AprilTag ID",
+            "key": "NT:/AdvScope/ELPBACK/RemovedTagsIDs",
+            "fieldTypeIndex": 0
+          },
+          {
+            "type": "Yellow Cone (Center)",
+            "key": "NT:/AdvScope/ELPBACK/RemovedTagsPoses",
+            "fieldTypeIndex": 0
+          }
+        ],
+        [
+          {
+            "type": "Robot",
+            "key": "NT:/Drive/EstimatorPose",
+            "fieldTypeIndex": 0
+          },
+          {
+            "type": "Ghost",
+            "key": "NT:/AprilTags/EstPoseV2",
+            "fieldTypeIndex": 0
+          }
+        ]
+      ],
+      "options": {
+        "field": "Axes",
+        "alliance": "blue",
+        "robot": "KitBot",
+        "unitDistance": "meters",
+        "unitRotation": "radians"
+      },
+      "title": "3D Field"
+    },
+    {
+      "type": 2,
+      "fields": [
+        "NT:/AdvScope/ELPBACK/RemovedTagsPoses",
+        "NT:/AdvScope/ELPBACK/RemovedTagsIDs",
+        "NT:/AdvScope/ELPBACK/LingeringTagIDs"
+      ],
+      "title": "Table"
+    }
+  ]
+}

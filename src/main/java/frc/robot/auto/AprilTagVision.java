@@ -27,7 +27,7 @@ public class AprilTagVision {
         m_field2d = new Field2d();
 
         SmartDashboard.putData("field2d", m_field2d);
-        fieldLayout = APRILTAG.FIELDLAYOUT_ERIK_TOP_FLOOR_TEST; 
+        fieldLayout = APRILTAG.FIELDLAYOUT_ERIK_BOTTOM_FLOOR; 
         // try {
         //     // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
         //     // fieldLayout = AprilTagFields.k2023ChargedUp.loadAprilTagLayoutField();

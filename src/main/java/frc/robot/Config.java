@@ -60,7 +60,7 @@ public final class Config {
 
         public static final double WHEEL_DIAMETER = 0.1016; // 4 inches = 0.1016 meters
 
-        public static final double TRACKWIDTH = 0.3136;
+        public static final double TRACKWIDTH = 0.30;
         public static final DifferentialDriveKinematics KINEMATICS = new DifferentialDriveKinematics(TRACKWIDTH);
 
 
@@ -130,10 +130,10 @@ public final class Config {
     public static class VISION {
         public static class APRILTAG {
             public static final boolean DISABLE_VISION_FEEDBACK = true;
-            public static final boolean DISABLE_TAG_TRIMMING = true;
+            public static final boolean DISABLE_TAG_TRIMMING = false;
             public static final double ALLOWABLE_POSE_DISTANCE_ERROR = 1.0;
             public static final double ALLOWABLE_TAG_DISTANCE_ERROR = 1.0;
-            public static final double ALLOWABLE_TAG_ANGLE_ERROR = 0.003; // Around 10 degree of error
+            public static final double ALLOWABLE_TAG_ANGLE_ERROR = 0.003; // 0.003 is around 10 degrees of error
 
             /*
              * Put all photon vision april tag cameras here. 
@@ -186,7 +186,7 @@ public final class Config {
                         6.072, 0.0, 0.407,
                         new Rotation3d(0, 0, Math.toRadians(90)))),
                     new AprilTag(4, new Pose3d(
-                        0, 0, 0,
+                        5.125, 1.090, 0.412,
                         new Rotation3d(0, 0, Math.toRadians(-90)))),
                     new AprilTag(5, new Pose3d(
                         5.092, 0.0, 0.408,

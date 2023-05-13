@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -22,16 +23,18 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.lib.lib686.AdvantageUtil;
 
 public class AdvScopeAprilTagPhotonCamera {
-    private static final double TAG_LINGERING_DURATION = 1;
+    private static final double TAG_LINGERING_DURATION = 2;
     private Timer m_timer;
     private boolean m_noData = false;
     private Transform3d m_robotToCamera;
+    private AprilTagFieldLayout m_fieldLayout;
 
-    private DoubleArrayPubLog pubLogEstPose, pubLogAcceptedTagPoses, pubLogAllTagPoses, pubLogRemovedTags;
-    private IntegerArrayPubLog pubLogAcceptedTagIDs, pubLogAllTagIDs;
+    private DoubleArrayPubLog pubLogEstPose, pubLogAcceptedTagPoses, pubLogAllTagPoses, pubLogRemovedTagsPoses, pubLogFieldTagPose;
+    private IntegerArrayPubLog pubLogAcceptedTagIDs, pubLogAllTagIDs, pubLogRemovedTagsIDs;
 
-    public AdvScopeAprilTagPhotonCamera(String cameraName, Transform3d robotToCamera) {
+    public AdvScopeAprilTagPhotonCamera(String cameraName, Transform3d robotToCamera, AprilTagFieldLayout fieldLayout) {
         m_robotToCamera = robotToCamera;
+        m_fieldLayout = fieldLayout;
         m_timer = new Timer();
 
         pubLogEstPose = new DoubleArrayPubLog(cameraName, "EstimatedPose");
@@ -39,8 +42,10 @@ public class AdvScopeAprilTagPhotonCamera {
         pubLogAcceptedTagIDs = new IntegerArrayPubLog(cameraName, "AcceptedTagIDs");
         pubLogAllTagPoses = new DoubleArrayPubLog(cameraName, "LingeringTagPoses");
         pubLogAllTagIDs = new IntegerArrayPubLog(cameraName, "LingeringTagIDs");
+        pubLogFieldTagPose = new DoubleArrayPubLog(cameraName, "FieldTagPose");
 
-        pubLogRemovedTags = new DoubleArrayPubLog(cameraName, "RemovedTags");
+        pubLogRemovedTagsPoses = new DoubleArrayPubLog(cameraName, "RemovedTagsPoses");
+        pubLogRemovedTagsIDs = new IntegerArrayPubLog(cameraName, "RemovedTagsIDs");
     }
 
     public void noNewData() {
@@ -54,6 +59,7 @@ public class AdvScopeAprilTagPhotonCamera {
             // The tags have lingered for the duration, so clear them
             pubLogAllTagPoses.noData();
             pubLogAllTagIDs.noData();
+            pubLogFieldTagPose.noData();
 
             m_timer.stop();
         }
@@ -67,11 +73,13 @@ public class AdvScopeAprilTagPhotonCamera {
         handleNewData(estimatedRobotPose, poseAtTimestamp, true);
     }
 
-    public void logRemovedTags(List<Pose3d> removedTags) {
-        if (removedTags.isEmpty()) {
-            pubLogRemovedTags.noData();
+    public void logRemovedTags(List<Pose3d> removedTagsPoses, List<Integer> removedTagsIDs) {
+        if (removedTagsPoses.isEmpty() || removedTagsIDs.isEmpty()) {
+            pubLogRemovedTagsPoses.noData();
+            pubLogRemovedTagsIDs.noData();;
         }
-        pubLogRemovedTags.accept(AdvantageUtil.deconstructPose3ds(removedTags));
+        pubLogRemovedTagsPoses.accept(AdvantageUtil.deconstructPose3ds(removedTagsPoses));
+        pubLogRemovedTagsIDs.accept(convertIntegers(removedTagsIDs));
     }
 
     private void clearAcceptedData() {
@@ -81,33 +89,47 @@ public class AdvScopeAprilTagPhotonCamera {
     }
 
     private void handleNewData(EstimatedRobotPose estimatedRobotPose, Pose2d poseAtTimestamp, boolean newDataAccepted) {
+        if (m_noData) {
+            m_noData = false;
+            m_timer.stop();
+            m_timer.reset();
+        }
+        
+        
         List<PhotonTrackedTarget> targets = estimatedRobotPose.targetsUsed;
 
         // Convert PhotonTrackedTarget into Lists
         List<Pose3d> targetPoses = new ArrayList<>();
         List<Integer> targetTagIDs = new ArrayList<>();
+        List<Pose3d> fieldTagPoses = new ArrayList<>();
         for (PhotonTrackedTarget target : targets) {
             targetPoses.add(new Pose3d(poseAtTimestamp).transformBy(m_robotToCamera).transformBy(target.getBestCameraToTarget()));
             targetTagIDs.add(target.getFiducialId());
+            Optional<Pose3d> tagPose = m_fieldLayout.getTagPose(target.getFiducialId());
+            if (tagPose.isPresent()) {
+                fieldTagPoses.add(tagPose.get());
+            }
         }
 
         // Convert Lists into arrays for AdvantageScope
         double[] advScopeAllTagPoses = AdvantageUtil.deconstructPose3ds(targetPoses);
         long[] advScopeAllTagIDs = convertIntegers(targetTagIDs);
+        double[] advScopeFieldTagPoses = AdvantageUtil.deconstructPose3ds(fieldTagPoses);
 
         // Update AllTags aka "LingeringTagPoses" and "LingeringTagIDs"
         m_noData = false;
         pubLogAllTagPoses.accept(advScopeAllTagPoses);
         pubLogAllTagIDs.accept(advScopeAllTagIDs);
+        pubLogFieldTagPose.accept(advScopeFieldTagPoses);
 
         // Check if the new data was accepted
         if (newDataAccepted) {
             // Update the accepted tags
             pubLogAcceptedTagPoses.accept(advScopeAllTagPoses);
             pubLogAcceptedTagIDs.accept(advScopeAllTagIDs);
-
+            
             // Update the accepted pose estimate
-            pubLogEstPose.accept(AdvantageUtil.deconstruct(estimatedRobotPose.estimatedPose));
+            pubLogEstPose.accept(AdvantageUtil.deconstruct(estimatedRobotPose.estimatedPose.toPose2d()));
         } else {
             clearAcceptedData();
         }
