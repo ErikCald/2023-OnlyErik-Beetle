@@ -72,7 +72,6 @@ public class PhotonCameraAprilTagWrapper {
 
     private DoubleArrayPublisher pubEstPose;
 
-    private double prevTimestamp = 0;
     private double prevPipelineTimestamp = -1;
     
 
@@ -116,7 +115,6 @@ public class PhotonCameraAprilTagWrapper {
             }
 
             // Filter the pipeline
-            // testFilterPipelineResult(pipelineResult);
             filterPipelineResult(pipelineResult);
 
             result = m_photonPoseEstimator.update(pipelineResult);
@@ -142,20 +140,6 @@ public class PhotonCameraAprilTagWrapper {
 
         Pose2d poseAtTimestamp = optionalPoseAtTimestamp.get();
         
-
-        // THIS IS ALREADY HANDLED BY PhotonPoseEstimator
-        // /*
-        //  * Check if the data is new data or stale data.
-        //  */
-        // if (areFloatsEqual(estimatedRobotPose.timestampSeconds, prevTimestamp)) {
-        //     // The timestamp hasn't change since the last roborio cycle
-        //     m_advScopeDisplay.noNewData();
-        //     return;
-        // } else {
-        //     // The data is new
-        //     prevTimestamp = estimatedRobotPose.timestampSeconds;
-        // }
-
         /*
          * Check if the data is valid (check for discrepancies in the data).
          */
@@ -303,22 +287,4 @@ public class PhotonCameraAprilTagWrapper {
 
         return Math.abs(r * other_r + v.dot(other_v)) > 1.0 - tolerence;
     }
-
-
-    // public static void main(String[] args) {
-    //     Rotation3d rot1 = new Rotation3d(Units.degreesToRadians(100), Units.degreesToRadians(0), Units.degreesToRadians(0));
-    //     Rotation3d rot2;
-        
-    //     int i = 0;
-    //     do {
-    //         rot2 = new Rotation3d(Units.degreesToRadians(0), Units.degreesToRadians(i), Units.degreesToRadians(i));
-    //         System.out.println(i);
-    //         i++;
-
-
-    //     } while (compareQuaternion(rot1.getQuaternion(), rot2.getQuaternion(), 0.003));//APRILTAG.ALLOWABLE_TAG_ANGLE_ERROR));
-        
-
-    //     System.out.println(i);
-    // }
 }

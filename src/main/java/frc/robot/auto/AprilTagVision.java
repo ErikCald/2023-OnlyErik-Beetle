@@ -8,6 +8,7 @@ import java.util.function.Function;
 import com.pathplanner.lib.PathPlannerTrajectory;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -30,7 +31,7 @@ public class AprilTagVision {
         fieldLayout = APRILTAG.FIELDLAYOUT_ERIK_BOTTOM_FLOOR; 
         // try {
         //     // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
-        //     // fieldLayout = AprilTagFields.k2023ChargedUp.loadAprilTagLayoutField();
+            // fieldLayout = AprilTagFields.k2023ChargedUp.loadAprilTagLayoutField();
 
         //     // fieldLayout = new AprilTagFieldLayout("frc/robot/auto/erikTopFloorTest1.json");//"apriltagfieldlayouts/erikTopFloorTest1.json");//new AprilTagFieldLayout("apriltagfieldlayouts/erikTopFloorTest1.json");
         //     // fieldLayout = new AprilTagFieldLayout(Filesystem.getDeployDirectory().getPath() + "erikTopFloorTest1.json");

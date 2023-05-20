@@ -30,7 +30,7 @@ public class GeneratePPOnTheFly extends CommandBase {
      * Generates a PathPlanner command to start from the robots current location and speed, and goes through the finalPathPoints.
      * 
      * If you want to schedule commands while moving, recommend creating a seperate PathPlanner command to run right after this command.
-     *      (and putting an override velocity in the last point of finalPathPoints)
+     *      (and putting a override velocity in the last point of finalPathPoints)
      * 
      * @param autoBuilder
      * @param drive

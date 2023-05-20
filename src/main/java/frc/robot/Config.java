@@ -10,6 +10,7 @@ import com.pathplanner.lib.auto.PIDConstants;
 
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.DifferentialDriveFeedforward;
 import edu.wpi.first.math.controller.LTVDifferentialDriveController;
@@ -203,7 +204,7 @@ public final class Config {
                 ), 
                 FIELD_LENGTH_2023, 
                 FIELD_WIDTH_2023
-            );
+            ); 
         }
     }
 }
