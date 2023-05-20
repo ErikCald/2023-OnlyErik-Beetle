@@ -30,11 +30,10 @@ public final class AutoRoutines {
     public AutoRoutines(DriveSubsystem drive) {
         this.drive = drive;
 
-        m_autoBuilder = CreateAutoBuilder.createBuilder(drive, m_eventMap);
-
         m_eventMap = new HashMap<>();
         m_eventMap.put("blingBlue", new InstantCommand());
 
+        m_autoBuilder = CreateAutoBuilder.createBuilder(drive, m_eventMap);
     }
     
     /** Example static factory for an autonomous command. */
