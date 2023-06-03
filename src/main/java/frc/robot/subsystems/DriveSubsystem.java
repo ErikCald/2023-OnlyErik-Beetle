@@ -29,9 +29,9 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.lib2706.AdvantageUtil;
 import frc.lib.lib2706.CTREUnits;
 import frc.lib.lib2706.DifferentialDrivePoseEstimatorExposed;
-import frc.lib.lib686.AdvantageUtil;
 import frc.robot.Config.CANID;
 import frc.robot.Config.DIFF;
 import frc.robot.Config.DIFF_SIMULATION;
@@ -45,21 +45,23 @@ public class DriveSubsystem extends SubsystemBase {
     PigeonIMU m_pigeon;
 
     DifferentialDrive m_teleopDrive;
-    DifferentialDrivePoseEstimatorExposed m_poseEstimator;
-    DifferentialDriveOdometry m_odometry;
+    // DifferentialDrivePoseEstimatorExposed m_poseEstimator;
+    // DifferentialDriveOdometry m_odometry;
     
     TalonSRXSimCollection m_simLeftMotor, m_simRightMotor;
     BasePigeonSimCollection m_simPigeon;
 
     DoublePublisher pubLeftVel, pubRightVel;
-    DoubleArrayPublisher pubOdometryPose, pubEstimatorPose;
+    // DoubleArrayPublisher pubOdometryPose, pubEstimatorPose;
+
+    private PoseEstimatorManager m_estimators;
 
     private boolean m_disableVisionFeedback = APRILTAG.DISABLE_VISION_FEEDBACK;
 
+
+    // private PhotonCamera cam;
     /** Creates a new DifferentialDrive. */
     public DriveSubsystem() {
-        m_aprilTagVision = new AprilTagVision(this::getPoseAtTimestamp, this::addVisionMeasurement);
-
         m_leftMotor = new WPI_TalonSRX(CANID.DIFF_LEFT);
         m_rightMotor = new WPI_TalonSRX(CANID.DIFF_RIGHT);
 
@@ -84,18 +86,27 @@ public class DriveSubsystem extends SubsystemBase {
         m_simRightMotor = m_rightMotor.getSimCollection();
         m_simPigeon = m_pigeon.getSimCollection();
 
-        m_poseEstimator = new DifferentialDrivePoseEstimatorExposed(
-            DIFF.KINEMATICS, 
-            getGyroYaw(),
-            getLeftDistance(),
-            getRightDistance(),
-            new Pose2d(4, 2, Rotation2d.fromDegrees(180)));
+        //- m_poseEstimator = new DifferentialDrivePoseEstimatorExposed(
+        //     DIFF.KINEMATICS, 
+        //     getGyroYaw(),
+        //     getLeftDistance(),
+        //     getRightDistance(),
+        //     new Pose2d(4, 2, Rotation2d.fromDegrees(180)));
 
-        m_odometry = new DifferentialDriveOdometry(
+        //- m_odometry = new DifferentialDriveOdometry(
+        //     getGyroYaw(), 
+        //     getLeftDistance(), 
+        //     getRightDistance(), 
+        //     new Pose2d(4, 2, Rotation2d.fromDegrees(180)));
+
+        m_estimators = new PoseEstimatorManager(
+            DIFF.KINEMATICS, 
             getGyroYaw(), 
             getLeftDistance(), 
             getRightDistance(), 
             new Pose2d(4, 2, Rotation2d.fromDegrees(180)));
+
+        m_aprilTagVision = new AprilTagVision(this);
 
         createNT();
     }
@@ -105,24 +116,31 @@ public class DriveSubsystem extends SubsystemBase {
         pubLeftVel = table.getDoubleTopic("MeasuredLeftVelocity").publish(PubSubOption.periodic(0.02));
         pubRightVel = table.getDoubleTopic("MeasuredRightVelocity").publish(PubSubOption.periodic(0.02));
 
-        pubOdometryPose = table.getDoubleArrayTopic("OdometryPose").publish(PubSubOption.periodic(0.02));
-        pubEstimatorPose = table.getDoubleArrayTopic("EstimatorPose").publish(PubSubOption.periodic(0.02));
+        //-pubOdometryPose = table.getDoubleArrayTopic("OdometryPose").publish(PubSubOption.periodic(0.02));
+        //-pubEstimatorPose = table.getDoubleArrayTopic("EstimatorPose").publish(PubSubOption.periodic(0.02));
     }
 
     @Override
     public void periodic() {
-        Pose2d newPose = m_poseEstimator.update(
+        Pose2d newPose = m_estimators.update(
             getGyroYaw(), 
-            getLeftDistance(), 
-            getRightDistance());
+            getLeftVelocity(),
+            getLeftDistance());
 
-        Pose2d odometryPose = m_odometry.update(
-            getGyroYaw(), 
-            getLeftDistance(), 
-            getRightDistance());
+        //- Pose2d newPose = m_poseEstimator.update(
+        //     getGyroYaw(), 
+        //     getLeftDistance(), 
+        //     getRightDistance());
 
-        pubEstimatorPose.accept(AdvantageUtil.deconstruct(newPose));
-        pubOdometryPose.accept(AdvantageUtil.deconstruct(odometryPose));
+        // Pose2d odometryPose = m_odometry.update(
+        //     getGyroYaw(), 
+        //     getLeftDistance(), 
+        //     getRightDistance());
+
+        // pubEstimatorPose.accept(AdvantageUtil.deconstruct(newPose));
+        // pubOdometryPose.accept(AdvantageUtil.deconstruct(odometryPose));
+
+        
 
         // Poll apriltag cameras and update pose estimator
         m_aprilTagVision.update(newPose);
@@ -137,14 +155,16 @@ public class DriveSubsystem extends SubsystemBase {
             this);
     }
 
-    public void addVisionMeasurement(Pose2d pose, double timestamp) {
-        if (!m_disableVisionFeedback) {
-            m_poseEstimator.addVisionMeasurement(pose, timestamp);
-        }
+    public void addVisionMeasurement(Pose2d pose, double timestamp, String name) {
+        // if (!m_disableVisionFeedback) {
+        //     m_poseEstimator.addVisionMeasurement(pose, timestamp);
+        // }
+        m_estimators.setVisionPose(pose, timestamp, name);
     }
 
-    public Optional<Pose2d> getPoseAtTimestamp(double timestamp) {
-        return m_poseEstimator.getPoseAtTimestamp(timestamp);
+    public Optional<Pose2d> getPoseAtTimestamp(double timestamp, String name) {
+        // return m_poseEstimator.getPoseAtTimestamp(timestamp);
+        return m_estimators.getPoseAtTimestamp(timestamp, name);
     }
 
     public void arcadeDrive(double forwardSpeed, double rotationSpeed) {
@@ -187,7 +207,7 @@ public class DriveSubsystem extends SubsystemBase {
     }
     
     public Pose2d getPose() {
-        return m_poseEstimator.getEstimatedPosition();
+        return m_estimators.getPrimaryPose();
     }
 
     public Rotation2d getHeading() {
@@ -195,15 +215,21 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     public void resetPose(Pose2d pose) {
-        m_poseEstimator.resetPosition(
+        // m_poseEstimator.resetPosition(
+        //     getGyroYaw(), 
+        //     getLeftDistance(), 
+        //     getRightDistance(), 
+        //     pose);
+        // m_odometry.resetPosition(
+        //     getGyroYaw(), 
+        //     getLeftDistance(), 
+        //     getRightDistance(), 
+        //     pose);
+
+        m_estimators.resetPose(
             getGyroYaw(), 
+            getLeftVelocity(), 
             getLeftDistance(), 
-            getRightDistance(), 
-            pose);
-        m_odometry.resetPosition(
-            getGyroYaw(), 
-            getLeftDistance(), 
-            getRightDistance(), 
             pose);
 
         System.out.println("Pose Reset");

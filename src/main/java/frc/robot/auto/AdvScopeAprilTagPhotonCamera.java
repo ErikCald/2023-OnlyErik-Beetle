@@ -20,7 +20,7 @@ import edu.wpi.first.util.datalog.IntegerArrayLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import frc.lib.lib686.AdvantageUtil;
+import frc.lib.lib2706.AdvantageUtil;
 
 public class AdvScopeAprilTagPhotonCamera {
     private static final double TAG_LINGERING_DURATION = 2;

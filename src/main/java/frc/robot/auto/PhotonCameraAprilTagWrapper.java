@@ -55,17 +55,17 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.PubSub;
 import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.lib.lib686.AdvantageUtil;
+import frc.lib.lib2706.AdvantageUtil;
 import frc.robot.Config.GENERAL;
 import frc.robot.Config.VISION.APRILTAG;
+import frc.robot.subsystems.DriveSubsystem;
 
 public class PhotonCameraAprilTagWrapper {
     private AdvScopeAprilTagPhotonCamera m_advScopeDisplay;
 
     private String m_cameraName;
     private Transform3d m_robotToCamera;
-    private Function<Double, Optional<Pose2d>> m_getPoseAtTimestamp;
-    private BiConsumer<Pose2d, Double> m_addVisionMeasurement;
+    private DriveSubsystem m_driveSub;
     private AprilTagFieldLayout m_fieldLayout;
     private PhotonCamera m_photonCamera;
     private PhotonPoseEstimator m_photonPoseEstimator;
@@ -75,13 +75,12 @@ public class PhotonCameraAprilTagWrapper {
     private double prevPipelineTimestamp = -1;
     
 
-    public PhotonCameraAprilTagWrapper(String cameraName, Transform3d robotToCamera, Function<Double, Optional<Pose2d>> getPoseAtTimestamp, BiConsumer<Pose2d, Double> addVisionMeasurement, AprilTagFieldLayout fieldLayout) {
+    public PhotonCameraAprilTagWrapper(String cameraName, Transform3d robotToCamera, DriveSubsystem driveSub, AprilTagFieldLayout fieldLayout) {
         m_advScopeDisplay = new AdvScopeAprilTagPhotonCamera(cameraName, robotToCamera, fieldLayout);
         
         m_cameraName = cameraName;
         m_robotToCamera = robotToCamera;
-        m_addVisionMeasurement = addVisionMeasurement;
-        m_getPoseAtTimestamp = getPoseAtTimestamp;
+        m_driveSub = driveSub;
         m_fieldLayout = fieldLayout;
 
         // Change the name of your camera here to whatever it is in the PhotonVision UI.
@@ -131,7 +130,7 @@ public class PhotonCameraAprilTagWrapper {
         EstimatedRobotPose estimatedRobotPose = result.get();
         pubEstPose.accept(AdvantageUtil.deconstruct(estimatedRobotPose.estimatedPose.toPose2d()));
 
-        Optional<Pose2d> optionalPoseAtTimestamp = m_getPoseAtTimestamp.apply(estimatedRobotPose.timestampSeconds);
+        Optional<Pose2d> optionalPoseAtTimestamp = m_driveSub.getPoseAtTimestamp(estimatedRobotPose.timestampSeconds, m_cameraName);
         if (optionalPoseAtTimestamp.isEmpty()) {
             DriverStation.reportError("AprilTags on " + m_cameraName + " failed because poseAtTimestamp is empty.", false);
             m_advScopeDisplay.noNewData();
@@ -146,8 +145,8 @@ public class PhotonCameraAprilTagWrapper {
         if (checkValid(estimatedRobotPose, prevEstimatedRobotPose, poseAtTimestamp)) {
 
             // Data is accepted, pass estimated pose to a WPILib PoseEstimator
-            m_addVisionMeasurement.accept(estimatedRobotPose.estimatedPose.toPose2d(), 
-                    estimatedRobotPose.timestampSeconds);
+            m_driveSub.addVisionMeasurement(estimatedRobotPose.estimatedPose.toPose2d(), 
+                    estimatedRobotPose.timestampSeconds, m_cameraName);
 
             // Update AdvantageScope display
             m_advScopeDisplay.dataAccepted(estimatedRobotPose, poseAtTimestamp);
@@ -165,7 +164,7 @@ public class PhotonCameraAprilTagWrapper {
             return;// pipelineResult;
         } 
 
-        Optional<Pose2d> optionalPoseAtTimestamp = m_getPoseAtTimestamp.apply(pipelineTimestamp);
+        Optional<Pose2d> optionalPoseAtTimestamp = m_driveSub.getPoseAtTimestamp(pipelineTimestamp, m_cameraName);
 
         if (optionalPoseAtTimestamp.isEmpty()) {
             // Skip tag trimming
@@ -203,7 +202,7 @@ public class PhotonCameraAprilTagWrapper {
             return;
         } 
 
-        Optional<Pose2d> optionalPoseAtTimestamp = m_getPoseAtTimestamp.apply(pipelineTimestamp);
+        Optional<Pose2d> optionalPoseAtTimestamp = m_driveSub.getPoseAtTimestamp(pipelineTimestamp, m_cameraName);
 
         if (optionalPoseAtTimestamp.isEmpty()) {
             // Skip tag trimming
