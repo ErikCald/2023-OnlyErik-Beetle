@@ -1,4 +1,4 @@
-package frc.lib.lib686;
+package frc.lib.lib2706;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,7 +12,11 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 
+/**
+ * Copied and modified/added version from team 686
+ */
 public class AdvantageUtil {
     public static double[] deconstruct(Pose3d pose)
     {
@@ -70,5 +74,14 @@ public class AdvantageUtil {
                              new Rotation2d(array[2+i])));
         }
         return r;
+    }
+
+    public static double[] deconstructSwerveModuleState(SwerveModuleState[] state) {
+        return new double[]{
+            state[0].angle.getRadians(), state[0].speedMetersPerSecond,
+            state[1].angle.getRadians(), state[1].speedMetersPerSecond,
+            state[2].angle.getRadians(), state[2].speedMetersPerSecond,
+            state[3].angle.getRadians(), state[3].speedMetersPerSecond,
+        };
     }
 }

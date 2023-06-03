@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Config.VISION.APRILTAG;
+import frc.robot.subsystems.DriveSubsystem;
 
 public class AprilTagVision {
     
@@ -23,7 +24,7 @@ public class AprilTagVision {
     private ArrayList<PhotonCameraAprilTagWrapper> cameras;
     private AprilTagFieldLayout fieldLayout;
 
-    public AprilTagVision(Function<Double, Optional<Pose2d>> getPoseAtTimestamp, BiConsumer<Pose2d, Double> addVisionMeasurement) {
+    public AprilTagVision(DriveSubsystem driveSub) {
         cameras = new ArrayList<>();
         m_field2d = new Field2d();
 
@@ -56,8 +57,7 @@ public class AprilTagVision {
                 cameras.add(new PhotonCameraAprilTagWrapper(
                     APRILTAG.PHOTON_CAMERA_NAMES[i], // PhotoCamera name
                     APRILTAG.PHOTON_CAMERA_LOCATIONS[i], // Location of camera on robot
-                    getPoseAtTimestamp,
-                    addVisionMeasurement, 
+                    driveSub,
                     fieldLayout
                 ));
             }

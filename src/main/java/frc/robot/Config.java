@@ -143,7 +143,10 @@ public final class Config {
              */
             public static String[] PHOTON_CAMERA_NAMES = {
                 // "FrontTopMSLifeCam"
-                "ELPBACK"
+                // "ELPBACK"
+                "OV9281",
+                "ELP-FRONT",
+                "HD3000-FRONT"
             };
             public static Transform3d[] PHOTON_CAMERA_LOCATIONS = {
                 // new Transform3d(new Translation3d(
@@ -156,7 +159,10 @@ public final class Config {
                     -0.11, 
                     0, 
                     0.39), 
-                    new Rotation3d(0, 0, Units.degreesToRadians(180)))
+                    new Rotation3d(0, 0, Units.degreesToRadians(180))),
+
+                new Transform3d(),
+                new Transform3d()
             };
              
             public static double FIELD_LENGTH_2023 = 16.54175;
