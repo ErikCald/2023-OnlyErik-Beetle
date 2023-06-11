@@ -228,8 +228,8 @@ public class DriveSubsystem extends SubsystemBase {
 
         m_estimators.resetPose(
             getGyroYaw(), 
-            getLeftVelocity(), 
             getLeftDistance(), 
+            getRightDistance(), 
             pose);
 
         System.out.println("Pose Reset");
