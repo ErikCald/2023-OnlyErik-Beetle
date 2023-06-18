@@ -13,6 +13,7 @@ import com.pathplanner.lib.PathPoint;
 import com.pathplanner.lib.auto.BaseAutoBuilder;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.DriveSubsystem;
@@ -50,13 +51,18 @@ public class GeneratePPOnTheFly extends CommandBase {
         addRequirements(drive);
     }
 
+
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
         Pose2d pose = m_drive.getPose();
         ChassisSpeeds speeds = m_drive.getSpeeds();
 
-        m_pathPoints.set(0, new PathPoint(pose.getTranslation(), pose.getRotation(), speeds.vxMetersPerSecond));
+        m_pathPoints.set(0, new PathPoint(
+            pose.getTranslation(), 
+            new Rotation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond), 
+            Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond)
+        ));
 
         PathPlannerTrajectory traj = PathPlanner.generatePath(
             new PathConstraints(m_maxVel, m_maxAccel), 
